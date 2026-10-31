@@ -1,0 +1,31 @@
+# OT2-Pipette: a precise 0.1–2.5 µl manual pipette as a native Opentrons OT-2 tool
+
+Prototype V0.1. An ONiLAB 0.1–2.5 µl manual pipette sits in a 3D-printed frame that bolts to an
+OT-2 pipette mount like the plate gripper. The robot sees it as a **P20 Single-Channel GEN2**
+through a 24C02 EEPROM on the standard ribbon. The robot's own plunger driver moves a Joy-IT
+NEMA08-04LA linear actuator that presses the pipette's plunger button.
+
+![views](docs/pipette_tool_views.png)
+
+## Quick start
+
+```bash
+cd PipetteTool/cad
+uv run --with cadquery python pipette_tool.py                       # build, check, export STEP/STL to out/
+uv run --with cadquery --with matplotlib python render_pipette_tool.py
+cd ../ot2
+python onilab_tool.py                                               # plunger positions, volume map
+python configure_pipette.py <robot-ip> left --apply                 # after the robot shows "P20 GEN2"
+```
+
+1. Measure the pipette (list in `docs/pipette_tool.md`, "Open points"), set the values in
+   `cad/pipette_tool.py` and `ot2/onilab_tool.py`, rebuild.
+2. Print `frame` upright (PETG/ASA, 204 mm) and `yoke` (PETG or resin); press 3 Ruthex M3 inserts
+   into the mount face and one into the yoke.
+3. Cut off the pipette's finger hook. Slide the pipette up into the sleeve, then tighten the 2 M3 grub screws.
+4. Program the EEPROM (`firmware/ot2_eeprom_writer`), wire the board (`electronics/README.md`).
+5. Mount on the OT-2, check it is detected, run `configure_pipette.py`, calibrate pipette offset and
+   tip length in the App, then calibrate volumes gravimetrically.
+6. Use it in protocols through `OnilabPipette` (`ot2/example_protocol_onilab.py`): volumes in real µl.
+
+Design note with decisions, checks and open points: [docs/pipette_tool.md](docs/pipette_tool.md).

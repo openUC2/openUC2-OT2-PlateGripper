@@ -10,7 +10,7 @@ metadata = {"protocolName": "ONiLAB 2.5 ul tool - demo", "author": "openUC2"}
 requirements = {"robotType": "OT-2", "apiLevel": "2.20"}
 
 # ---- tool model (copy of onilab_tool.py; edit the MEASURE values after calibration) -------
-LEAD_MM, S1, UL_PER_MM = 4.0, 5.0, 0.5            # lead screw, first-stop travel, real ul/mm
+LEAD_MM, S1, UL_PER_MM = 1.0, 5.0, 0.5            # YPF 20K lead, first-stop travel, real ul/mm
 R = 3200.0 / (200 * 32) * LEAD_MM                  # real mm per robot plunger mm
 P20 = [(0.8679, 0.1607, 0.5953), (1.0259, 0.1345, 0.5032), (1.1863, 0.1113, 0.527),
        (1.3419, 0.0766, 0.5682), (1.4882, 0.0377, 0.6204), (1.6413, 0.0482, 0.6047),
@@ -37,7 +37,7 @@ def _cmd(v_real):
     for _ in range(60):
         mid = (lo + hi) / 2
         lo, hi = (mid, hi) if _real(mid) < v_real else (lo, mid)
-    if (lo / _ul_per_mm(lo) if lo else 0) > S1 / R + 1e-6:
+    if (lo / _ul_per_mm(lo) if lo else 0) > S1 / R + 0.01:
         raise ValueError(f"{v_real} ul exceeds the first-stop stroke")
     return (lo + hi) / 2
 
@@ -73,7 +73,7 @@ class OnilabPipette:
     def strip_tip(self, hole, tip_len=31.0, slot_len=22.0, lift=25.0):
         """Take the tip off in the printed stripper: collar below the plate, slide into the slot,
         lift. Then a drop_tip() at the same spot clears the robot's tip state (no plunger
-        over-travel on V0.1: dropTip = blowout)."""
+        over-travel with the 12.7 mm actuator: dropTip = blowout)."""
         from opentrons.types import Point
         below = hole.top(-hole.depth - tip_len - 2.0)       # tip collar 2 mm under the plate
         self.p.move_to(hole.top(5))
@@ -90,7 +90,7 @@ STRIPPER = None    # paste PipetteTool/cad/out/openuc2_tipstripper_3_slot.json h
 
 
 def run(ctx: protocol_api.ProtocolContext):
-    tips = ctx.load_labware("opentrons_96_tiprack_10ul", 1)        # replace by the tips that fit the ONiLAB cone
+    tips = ctx.load_labware("opentrons_96_tiprack_10ul", 1)        # standard 10 ul tips: use your rack's definition
     plate = ctx.load_labware("corning_96_wellplate_360ul_flat", 2)
     stripper = ctx.load_labware_from_definition(STRIPPER, 9) if STRIPPER else None
     p20 = ctx.load_instrument("p20_single_gen2", "left", tip_racks=[tips])
@@ -106,5 +106,5 @@ def run(ctx: protocol_api.ProtocolContext):
     if stripper:
         pip.strip_tip(stripper["A1"])
     else:
-        pip.drop_tip()                        # V0.1 cannot eject: remove the tip by hand when paused
+        pip.drop_tip()                        # 12.7 mm actuator cannot eject: remove the tip by hand when paused
         ctx.pause("Remove the tip from the ONiLAB tool, then resume.")

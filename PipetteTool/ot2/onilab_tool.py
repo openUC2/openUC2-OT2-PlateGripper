@@ -30,24 +30,29 @@ P20_UL_PER_MM = [
     (21.3288, 0.0008, 0.7455),
 ]
 
-# --- our actuator -------------------------------------------------------------------------
+# --- our actuator: YPF Motors 20K-2AB-12.7 captive, 1 mm lead (same numbers as cad/pipette_tool.py) ---
 MOTOR_STEPS_PER_REV = 200        # 1.8 deg
-LEAD_MM = 4.0                    # Joy-IT NEMA08-04LA: Tr3.5 x 4 (use 1.0 for a 1 mm lead motor)
+LEAD_MM = 1.0                    # (Joy-IT NEMA08-04LA of V0.1: 4.0)
+MOTOR_STROKE = 12.7              # mm
+HOME_MARGIN = 1.2                # mm, robot 'top' below the retracted hard stop
+END_MARGIN = 0.3                 # mm, never closer to the extended hard stop
+SW_TRIGGER = 0.6                 # mm, the yoke trips the home switch this far above 'top'
 
 # --- the pipette and the yoke (MEASURE) ---------------------------------------------------
 PAD_GAP = 0.5        # mm, pad above the plunger button at "top"
 S1 = 5.0             # mm, button travel to the first stop with the volume set to 2.5 ul
 S2 = 3.0             # mm, extra travel from first stop to blow-out stop
-EJECT_BY_PLUNGER = False  # V0.1: rigid pad, tips come off in the printed stripper (dropTip = blowout)
-EJECT_GAP = 10.0     # mm, yoke travel from "top" until the ejector screw touches the ejector button
-EJECT_STROKE = 6.0   # mm, ejector button travel that releases the tip
-EJECT_OVER = 1.0     # mm, extra push at the end of the eject
+EJECT_BY_PLUNGER = False  # needs an actuator stroke >= 18 mm (eject variant yoke); 12.7 mm -> tip stripper
+EJECT_GAP = 0.5      # mm, from blow-out until the arm screw touches the ejector button
+EJECT_STROKE = 7.0   # mm, ejector button travel that releases the tip
+EJECT_OVER = 0.5     # mm, extra push at the end of the eject
 UL_PER_MM = 2.5 / S1 # real ul per mm of button travel at the 2.5 ul setting (MEASURE gravimetrically)
-TOP = HOMED_PLUNGER - 0.5        # command mm; switch releases just below the homed point
 
-# --- currents for the robot's plunger driver (A, peak); Joy-IT motor is rated 0.24 A -----
-PLUNGER_CURRENT = 0.25           # run; P20 GEN2 default 1.0 (idle 0.3 and homing 1.0 are NOT overridable)
-DROP_TIP_CURRENT = 0.3
+# --- currents for the robot's plunger driver (A, peak) ------------------------------------
+# YPF rating not known yet (MEASURE coil resistance; 20 mm hybrids are typically 0.5 A).
+# P20 GEN2 idle 0.3 A and homing 1.0 A are NOT overridable.
+PLUNGER_CURRENT = 0.5            # run; P20 GEN2 default 1.0
+DROP_TIP_CURRENT = 0.6           # only matters when ejecting by over-travel
 DROP_TIP_SPEED = 5.0             # command mm/s
 PICK_UP_CURRENT = 0.15           # Z current while pressing onto a tip (P20 GEN2 default 0.1)
 
@@ -70,22 +75,26 @@ def cmd_mm_above_bottom(v_cmd):
     return 0.0 if v_cmd <= 0 else v_cmd / ul_per_mm_p20(v_cmd)
 
 
+def travel(eject=EJECT_BY_PLUNGER):
+    """Real yoke travel (mm below 'top') at bottom / blowout / dropTip, and what the actuator allows."""
+    u = {"bottom": PAD_GAP + S1, "blowout": PAD_GAP + S1 + S2}
+    u["dropTip"] = u["blowout"] + (EJECT_GAP + EJECT_STROKE + EJECT_OVER if eject else 0.0)
+    return u, MOTOR_STROKE - HOME_MARGIN - END_MARGIN
+
+
 def plunger_positions(lead=LEAD_MM):
-    """top/bottom/blowout/dropTip in command mm (positive = up), checked against the API range."""
+    """top/bottom/blowout/dropTip in command mm (positive = up), checked against the API range
+    and the actuator stroke. The robot sets the plunger to HOMED_PLUNGER where the switch trips."""
     r = real_per_cmd_mm(lead)
-    pos = {
-        "top": TOP,
-        "bottom": TOP - (PAD_GAP + S1) / r,
-        "blowout": TOP - (PAD_GAP + S1 + S2) / r,
-        "dropTip": TOP - ((EJECT_GAP + EJECT_STROKE + EJECT_OVER) if EJECT_BY_PLUNGER
-                          else (PAD_GAP + S1 + S2)) / r,
-    }
+    top = HOMED_PLUNGER - SW_TRIGGER / r
+    u, u_max = travel()
+    pos = {"top": top, **{k: top - v / r for k, v in u.items()}}
     lo, hi = OVERRIDE_RANGE
     bad = {k: v for k, v in pos.items() if not lo <= v <= hi}
     if bad:
         raise ValueError(f"positions outside {OVERRIDE_RANGE}: {bad} - change LEAD_MM or the strokes")
-    if EJECT_BY_PLUNGER and EJECT_GAP <= PAD_GAP + S1 + S2 + 0.5:
-        raise ValueError("ejector screw would touch before blow-out ends: raise EJECT_GAP")
+    if u["dropTip"] > u_max:
+        raise ValueError(f"dropTip needs {u['dropTip']:.1f} mm of travel, the actuator gives {u_max:.1f} mm")
     return {k: round(v, 3) for k, v in pos.items()}
 
 
@@ -118,7 +127,7 @@ class VolumeMap:
             else:
                 hi = mid
         v = (lo + hi) / 2
-        if cmd_mm_above_bottom(v) > self.cmd_stroke + 1e-6:
+        if cmd_mm_above_bottom(v) > self.cmd_stroke + 0.01:      # P20 table has 6 um steps
             raise ValueError(f"{v_real} ul needs more than the first-stop stroke")
         return v
 

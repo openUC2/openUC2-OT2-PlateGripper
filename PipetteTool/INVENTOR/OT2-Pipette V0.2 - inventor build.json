@@ -1,0 +1,396 @@
+{
+ "main": {
+  "assembly": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2.iam",
+  "occurrences": [
+   {
+    "role": "frame",
+    "occurrence": "OT2-Pipette V0.2 - frame:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2 - frame.ipt",
+    "reference": false
+   },
+   {
+    "role": "yoke",
+    "occurrence": "OT2-Pipette V0.2 - yoke:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2 - yoke.ipt",
+    "reference": false
+   },
+   {
+    "role": "actuator",
+    "occurrence": "BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-CAD-new\\workspace\\BUY\\BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors.ipt",
+    "reference": false
+   },
+   {
+    "role": "home switch",
+    "occurrence": "BUY - Omron - micro switch - D2F-L:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\BUY - Omron - micro switch - D2F-L.ipt",
+    "reference": false
+   },
+   {
+    "role": "identity board",
+    "occurrence": "REF - identity board + 2x5 header:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\REF - identity board + 2x5 header.ipt",
+    "reference": false
+   },
+   {
+    "role": "insert 1",
+    "occurrence": "Threaded Insert-Ruthex-M3:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\Threaded Insert-Ruthex-M3.ipt",
+    "reference": false
+   },
+   {
+    "role": "insert 2",
+    "occurrence": "Threaded Insert-Ruthex-M3:2",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\Threaded Insert-Ruthex-M3.ipt",
+    "reference": false
+   },
+   {
+    "role": "insert 3",
+    "occurrence": "Threaded Insert-Ruthex-M3:3",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\Threaded Insert-Ruthex-M3.ipt",
+    "reference": false
+   },
+   {
+    "role": "pipette envelope",
+    "occurrence": "REF - ONiLAB envelope:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\REF - ONiLAB envelope.ipt",
+    "reference": true
+   },
+   {
+    "role": "OT-2 mount bar (reference model)",
+    "occurrence": "00_OT-2 Reference_Pipettte:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\00_OT-2 Reference_Pipettte.ipt",
+    "reference": true
+   },
+   {
+    "role": "gripper adapter (same frame)",
+    "occurrence": "OT2-Gripper V1-1 - OT2-interface adapter:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\OT2-Gripper V1-1 - OT2-interface adapter.ipt",
+    "reference": true
+   },
+   {
+    "role": "ONiLAB-Dev-Core (with hook)",
+    "occurrence": "ONiLAB-Dev-Core:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteGrabCad\\ONiLAB-Dev-Core.ipt",
+    "reference": true
+   }
+  ],
+  "interference": [
+   {
+    "pair": "frame / pipette envelope",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / actuator",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / home switch",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / identity board",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / insert 1",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      10.95,
+      -5.51,
+      48.3,
+      15.55
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 2",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      -15.55,
+      -5.51,
+      48.3,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 3",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      -45.3,
+      -15.55,
+      -5.51,
+      -40.7,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / OT-2 mount bar (reference model)",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / actuator",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / pipette envelope",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / frame",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / home switch",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "actuator / OT-2 mount bar (reference model)",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "pipette envelope / OT-2 mount bar (reference model)",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   }
+  ],
+  "missing_refs": []
+ },
+ " - eject variant": {
+  "assembly": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2 - eject variant.iam",
+  "occurrences": [
+   {
+    "role": "frame",
+    "occurrence": "OT2-Pipette V0.2 - frame:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2 - frame.ipt",
+    "reference": false
+   },
+   {
+    "role": "yoke eject",
+    "occurrence": "OT2-Pipette V0.2 - yoke eject variant:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2 - yoke eject variant.ipt",
+    "reference": false
+   },
+   {
+    "role": "spring pad",
+    "occurrence": "OT2-Pipette V0.2 - spring pad:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.2 - spring pad.ipt",
+    "reference": false
+   },
+   {
+    "role": "actuator",
+    "occurrence": "BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-CAD-new\\workspace\\BUY\\BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors.ipt",
+    "reference": false
+   },
+   {
+    "role": "home switch",
+    "occurrence": "BUY - Omron - micro switch - D2F-L:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\BUY - Omron - micro switch - D2F-L.ipt",
+    "reference": false
+   },
+   {
+    "role": "identity board",
+    "occurrence": "REF - identity board + 2x5 header:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\REF - identity board + 2x5 header.ipt",
+    "reference": false
+   },
+   {
+    "role": "insert 1",
+    "occurrence": "Threaded Insert-Ruthex-M3:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\Threaded Insert-Ruthex-M3.ipt",
+    "reference": false
+   },
+   {
+    "role": "insert 2",
+    "occurrence": "Threaded Insert-Ruthex-M3:2",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\Threaded Insert-Ruthex-M3.ipt",
+    "reference": false
+   },
+   {
+    "role": "insert 3",
+    "occurrence": "Threaded Insert-Ruthex-M3:3",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\Threaded Insert-Ruthex-M3.ipt",
+    "reference": false
+   },
+   {
+    "role": "pipette envelope",
+    "occurrence": "REF - ONiLAB envelope:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\REF - ONiLAB envelope.ipt",
+    "reference": true
+   },
+   {
+    "role": "OT-2 mount bar (reference model)",
+    "occurrence": "00_OT-2 Reference_Pipettte:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\00_OT-2 Reference_Pipettte.ipt",
+    "reference": true
+   },
+   {
+    "role": "gripper adapter (same frame)",
+    "occurrence": "OT2-Gripper V1-1 - OT2-interface adapter:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\INVENTOR\\OT2-Gripper V1-1 - OT2-interface adapter.ipt",
+    "reference": true
+   },
+   {
+    "role": "ONiLAB-Dev-Core (with hook)",
+    "occurrence": "ONiLAB-Dev-Core:1",
+    "file": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteGrabCad\\ONiLAB-Dev-Core.ipt",
+    "reference": true
+   }
+  ],
+  "interference": [
+   {
+    "pair": "frame / pipette envelope",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / actuator",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / home switch",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / identity board",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / insert 1",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      10.95,
+      -5.51,
+      48.3,
+      15.55
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 2",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      -15.55,
+      -5.51,
+      48.3,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 3",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      -45.3,
+      -15.55,
+      -5.51,
+      -40.7,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / OT-2 mount bar (reference model)",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / actuator",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / pipette envelope",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / frame",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / yoke eject",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / pipette envelope",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "actuator / OT-2 mount bar (reference model)",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "pipette envelope / OT-2 mount bar (reference model)",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   }
+  ],
+  "missing_refs": []
+ }
+}

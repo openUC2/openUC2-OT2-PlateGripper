@@ -8,8 +8,10 @@
     0x30  32 bytes  ID     (ASCII, zero padded) - key for calibration and settings
     0x60  32 bytes  MODEL  (ASCII, zero padded) - e.g. "p20_single_v2.2"
     0xA0  32 bytes  DATA   (unused by the robot software)
-  The robot reads it at 10 kHz, 8 bytes per transfer. Left mount = 0x50 (A0 low),
-  right mount = 0x51 (A0 high, pin 3 of the ribbon).
+  The robot reads it at 10 kHz: write the pointer (STOP), 10 ms, read 8 bytes (STOP). This sketch
+  reads the same way, so it also tests the ESP32-S3 emulator (../ot2_eeprom_emulator_esp32s3,
+  wired directly at 3.3 V: SDA-SDA, SCL-SCL, GND, 4.7 k pull-ups; its D0 low = 0x50).
+  Left mount = 0x50 (A0 low), right mount = 0x51 (A0 high, pin 3 of the ribbon).
 
   Wiring for programming (off the robot), Seeed XIAO RP2040 / SAMD21 / any Arduino:
     XIAO 3V3 -> EEPROM VCC (ribbon pin 6)      XIAO GND -> GND (pin 5) and A0 (pin 3)
@@ -47,7 +49,8 @@ bool readBlock(uint8_t loc, uint8_t *buf, uint8_t len) {
   for (uint8_t off = 0; off < len; off += PAGE) {
     Wire.beginTransmission(EEPROM_ADDR);
     Wire.write(loc + off);
-    if (Wire.endTransmission(false) != 0) return false;
+    if (Wire.endTransmission() != 0) return false;    // STOP, then read: like the robot
+    delay(10);
     uint8_t n = Wire.requestFrom((int)EEPROM_ADDR, (int)PAGE);
     for (uint8_t i = 0; i < n && off + i < len; i++) buf[off + i] = Wire.read();
   }

@@ -1,4 +1,4 @@
-"""ONiLAB 0.1-2.5 ul pipette as an OT-2 tool - parametric CadQuery model (prototype V0.2).
+"""ONiLAB 0.1-2.5 ul pipette as an OT-2 tool - parametric CadQuery model (prototype V0.3).
 
 Frame = the gripper's "OT2-interface adapter" frame, so both tools share one interface:
   x  away from the OT-2 mount bar (mount face at x = -9.5, the 3 M3 inserts point -x)
@@ -11,6 +11,8 @@ spring pad and an arm that pushes the ejector button past blow-out (needs ~17 mm
 
     uv run --with cadquery python pipette_tool.py            # build, check, export to out/
 Values marked MEASURE are estimates (product photos, ONiLAB-Dev-Core, OT-2 manual photos).
+Every number lives in P: pipette_params.py turns P + stack() into the Inventor parameter table
+of the native parts (build_inventor.py), so both models follow the same values.
 """
 import json
 import math
@@ -21,10 +23,12 @@ from pathlib import Path
 
 import cadquery as cq
 
+import pipette_params
+
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 REF = HERE / "ref"
-NAME = "OT2-Pipette V0.2"
+NAME = "OT2-Pipette V0.3"
 
 
 @dataclass
@@ -44,13 +48,24 @@ class P:
     wall_x1: float = -2.2          # +x face of the wall (motor side face at -1.8)
     insert_d: float = 4.1          # Ruthex M3 (RX-M3x5.7)
     insert_x_end: float = -2.8
+    insert_len: float = 5.7        # insert length (assembly: lead-in end inside the wall)
+    insert_cb_d: float = 6.0       # shallow recess around each insert on the mount face
+    insert_cb_h: float = 0.3
     inserts: tuple = ((46.0, 13.25), (46.0, -13.25), (-43.0, -13.25))   # (y, z) on the mount face
+    wall_fillet: float = 4.0       # top edges of the mount wall
+    cut_over: float = 1.0          # cutters run this far past the faces they open
     # --- pipette: ONiLAB = DLAB TopPette 0.1-2.5 ul; upper part ONiLAB-Dev-Core, rest product photos ---
     pip_x: float = 8.2             # axis (GEN2 nozzle at 6.5)
     pip_z: float = -3.46           # axis; ejector button points +z
     body_r: float = 12.33          # round back
     body_hw: float = 12.0          # flats
     body_len: float = 121.0        # body bottom -> top face around the plunger (Dev-Core)
+    body_flat_d: float = 5.17      # flats end at this D (toward the ejector side)
+    body_ch_w: float = 9.78        # chamfer corner (W, D) between flat and nose
+    body_ch_d: float = 10.75
+    nose_hw: float = 7.0           # nose arc: ends at W = +-7, radius 13.25 about D = 6
+    nose_r: float = 13.25
+    nose_c: float = 6.0
     knob_d: float = 16.6           # photo (MEASURE)
     knob_h: float = 7.0            # photo (MEASURE)
     knob_above_body: float = 18.5  # knob top above the body top face, at rest (photo, MEASURE)
@@ -97,43 +112,105 @@ class P:
     home_margin: float = 1.2       # robot 'top' below the retracted hard stop
     end_margin: float = 0.3        # never closer to the extended hard stop
     shelf_t: float = 4.0
+    shelf_back: float = 0.5        # shelf reaches this far into the wall
+    shelf_side: float = 1.0        # shelf beyond the motor square (+x) ...
+    env_margin: float = 0.3        # ... but stays this far inside the GEN2 outline
+    gusset_t: float = 2.5          # two gussets at the ends of the bar depth
+    pilot_clr: float = 0.4         # motor pilot recess: diameter and depth clearance
+    boss_clr: float = 0.8          # motor boss hole: diameter clearance
+    m2_clear_d: float = 2.4        # 4 x M2 through the shelf
+    driver_d: float = 4.4          # screwdriver channels for the M2 screws, through the ledge
     # --- yoke ---
     yoke_d: float = 18.0
     yoke_total: float = 28.0       # shaft shoulder -> pad face (room for the eject variant's spring pad)
     disc_h: float = 7.0
     insert_m25: float = 3.6        # Ruthex M2.5 insert for the shaft thread
+    insert_m25_depth: float = 6.0
     pad_d: float = 13.0
+    tab_x0: float = 0.0            # switch tab: from x = 0 to the axis, 3 mm high, toward -z
+    tab_h: float = 3.0
+    tab_z_in: float = 1.0          # tab ends this far inside the switch's -z end
     skirt_id: float = 14.6         # eject variant
+    slot_y0: float = 1.3           # pin slots in the skirt: start above the skirt bottom
+    slot_hw: float = 1.2
+    slot_half_len: float = 10.0    # slots cut right through the skirt
+    pin_y: float = 2.5             # pad pin axis above the skirt bottom
+    slot_end: float = 2.2          # slot runs past the pin at full squeeze
     flange_d: float = 14.0
     flange_h: float = 3.0
+    flange_gap: float = 1.0        # flange starts this far above the skirt bottom
+    pin_d: float = 1.6             # M2 pin hole through the pad (tapped)
     nose_d: float = 12.0
     nose_out: float = 3.0
     arm_w: float = 6.0
     arm_t: float = 5.0
+    arm_y: float = 4.0             # arm bar above the skirt bottom
     arm_r: float = 16.5            # eject screw axis, D from the pipette axis
     boss_d: float = 7.0
     boss_h: float = 6.0
     screw_out: float = 3.0         # M3 adjust screw below the boss
+    m3_tap_d: float = 2.5
     # --- home switch (Omron D2F-L class: 12.8 x 5.8 x 6.5, M2 holes 6.5 apart), lever down ---
     sw_l: float = 12.8
     sw_w: float = 5.8
     sw_h: float = 6.5
     sw_z0: float = -16.0
     sw_trigger: float = 0.6        # yoke rise above 'top' that trips it
+    sw_pitch: float = 6.5          # M2 holes
+    sw_hole_down: float = 2.9      # hole axis below the switch top
+    sw_pilot_d: float = 1.8        # M2 self-tapping into the wall
+    lever_drop: float = 1.5        # lever below the switch body
+    lever_clear: float = 0.2       # lever end above the tab at 'top'
+    lever_x0: float = 1.5          # lever from the wall face, x
+    lever_x1: float = 4.3
+    lever_inset: float = 1.0       # lever ends inside the body ends, z
+    hole_depth: float = 6.0        # self-tapping pilot holes into the wall face
     # --- clamp ---
     clr: float = 0.3
     wall: float = 3.0
     sleeve_bottom: float = 60.0    # sleeve starts this far above the body bottom (volume window stays free)
     ledge_t: float = 2.5
     knob_hole_d: float = 18.2       # knob 16.6 passes; leaves ~3 mm of ledge on the body top
+    body_cut_below: float = 30.0   # body clearance cut starts this far below the body
+    ej_slot_clr: float = 0.6       # ejector-button insertion slot: side clearance ...
+    ej_slot_z: float = 0.5         # ... and starts this far inside the button's D
     eject_win_d: float = 8.5       # front window from this D (ejector button, arm)
     eject_win_h: float = 28.0
+    eject_win_hw: float = 8.0
+    disp_hw: float = 6.0           # volume window half height (z)
     grub_y: tuple = (70.0, 108.0)  # M3 grub screws through the mount-side wall (above the body bottom)
+    grub_d: float = 2.5            # tapped M3
+    grub_into: float = 1.0         # hole ends this far past the -x flat
     # --- identity PCB with the 2x5 header (3M 30310-6002HB class), header facing the mount ---
     hdr_y: float = 76.0            # MEASURE: where the robot's plug lands (photos: ~64-67); PCB clears the ledge
     hdr_z: float = 13.0            # MEASURE: side (+/-) to be checked on the robot
     hdr_l: float = 20.9
     hdr_w: float = 9.5
+    hdr_body_l: float = 20.3       # header body (placeholder)
+    hdr_body_w: float = 8.9
+    hdr_in: float = 0.5            # header front inside the mount face
+    pcb_t: float = 1.6
+    pcb_margin: float = 6.0        # board beyond the header ends, y
+    pcb_hw: float = 5.5            # board half width, z
+    pcb_hole_d: float = 2.2        # 2 x M2.5 self-tapping
+    pcb_hole_off: float = 3.5      # holes beyond the window ends
+    # --- deck-slot tip stripper (own frame: x along the slot width, y up, z from the front edge) ---
+    st_w: float = 127.76           # SBS footprint
+    st_d: float = 85.48
+    st_h: float = 60.0
+    st_base_t: float = 3.0
+    st_plate_t: float = 4.0
+    st_side_x: float = 8.0         # side walls (and top plate ends) this far in from x = 0 / w
+    st_side_w: float = 6.0
+    st_front: float = 20.0         # walls and top plate from this z ...
+    st_back: float = 4.0           # ... to this far before the back edge
+    st_back_t: float = 3.0         # back wall
+    st_x1: float = 40.0            # first entry hole, then st_pitch apart (3 holes)
+    st_pitch: float = 24.0
+    st_entry_z: float = 60.0
+    st_entry_d: float = 9.5
+    st_slot_len: float = 22.0
+    st_slot_w: float = 4.4         # > cone at the plate, < 10 ul tip rim (MEASURE)
 
 
 def body_outline(p, n=24):
@@ -143,9 +220,10 @@ def body_outline(p, n=24):
     a0 = math.atan2(-math.sqrt(r * r - hw * hw), hw)          # back arc from W=+hw ...
     a1 = -math.pi - a0                                        # ... through D=-r to W=-hw
     pts = [(r * math.cos(a0 + (a1 - a0) * i / n), r * math.sin(a0 + (a1 - a0) * i / n)) for i in range(n + 1)]
-    pts += [(-hw, 5.17), (-9.78, 10.75), (-7.0, 17.25)]
-    pts += [(-7.0 + 14.0 * i / n, 6.0 + math.sqrt(13.25 ** 2 - (-7.0 + 14.0 * i / n) ** 2)) for i in range(1, n)]
-    pts += [(7.0, 17.25), (9.78, 10.75), (hw, 5.17)]
+    nw, nd = p.nose_hw, p.nose_c + math.sqrt(p.nose_r ** 2 - p.nose_hw ** 2)
+    pts += [(-hw, p.body_flat_d), (-p.body_ch_w, p.body_ch_d), (-nw, nd)]
+    pts += [(-nw + 2 * nw * i / n, p.nose_c + math.sqrt(p.nose_r ** 2 - (-nw + 2 * nw * i / n) ** 2)) for i in range(1, n)]
+    pts += [(nw, nd), (p.body_ch_w, p.body_ch_d), (hw, p.body_flat_d)]
     return pts
 
 
@@ -203,6 +281,16 @@ def stack(p):
     s["u_eject0"] = s["u_blowout"] + p.eject_gap
     s["u_drop"] = s["u_eject0"] + p.eject_stroke + p.eject_over
     s["stroke_for_eject"] = s["u_drop"] + p.home_margin + p.end_margin
+    # part datums (the native Inventor parts use the same names, see pipette_params.py)
+    s["shelf_x1"] = min(p.pip_x + p.mot_sq / 2 + p.shelf_side, p.env_x1 - p.env_margin)
+    s["gusset_h"] = s["shelf_x1"] - p.wall_x1
+    s["sw_y0"] = s["top"] + p.lever_clear + p.lever_drop        # switch body bottom
+    s["pad_face"] = s["top"] - p.yoke_total                      # rigid pad face / relaxed spring pad face
+    s["skirt_y0"] = s["pad_face"] + p.nose_out                   # eject variant: skirt bottom
+    s["arm_y0"] = s["skirt_y0"] + p.arm_y
+    s["slot_y1"] = s["skirt_y0"] + p.pin_y + p.eject_stroke + p.eject_over + p.slot_end
+    s["eject_tip_y"] = s["ej_top"] + s["u_eject0"]               # adjust-screw tip at 'top'
+    s["arm_boss_y"] = s["eject_tip_y"] + p.screw_out
     return s
 
 
@@ -213,64 +301,70 @@ def frame(p):
     outline = to_xz(p, body_outline(p))
     y_top = s["mot_rear"]
     yb, yt = s["sleeve_y0"], s["body_top"]
+    o = p.cut_over
     wall = box(p.mount_x, p.wall_x1, p.plate_y0, y_top, -p.env_z, p.env_z)
-    wall = wall.edges("|X and >Y").fillet(4.0)
+    wall = wall.edges("|X and >Y").fillet(p.wall_fillet)
     sleeve = prism(outline, yb, yt - yb + p.ledge_t, p.clr + p.wall)
     # motor shelf + two gussets at the far ends of the bar depth (clear of yoke, tab, arm, switch)
     y1 = s["mot_front"]
-    sx1 = min(p.pip_x + p.mot_sq / 2 + 1.0, p.env_x1 - 0.3)
-    shelf = box(p.wall_x1 - 0.5, sx1, y1 - p.shelf_t, y1, -p.env_z, p.env_z)
-    hg = sx1 - p.wall_x1
-    for zz in (-p.env_z, p.env_z - 2.5):
+    sx1, x0 = s["shelf_x1"], p.wall_x1 - p.shelf_back
+    shelf = box(x0, sx1, y1 - p.shelf_t, y1, -p.env_z, p.env_z)
+    for zz in (-p.env_z, p.env_z - p.gusset_t):
         g = (cq.Workplane("XY", origin=(0, 0, zz))
-             .polyline([(p.wall_x1 - 0.5, y1 - p.shelf_t), (sx1, y1 - p.shelf_t), (p.wall_x1 - 0.5, y1 - p.shelf_t - hg)])
-             .close().extrude(2.5))
+             .polyline([(x0, y1 - p.shelf_t), (sx1, y1 - p.shelf_t), (x0, y1 - p.shelf_t - s["gusset_h"])])
+             .close().extrude(p.gusset_t))
         shelf = shelf.union(g)
     part = wall.union(sleeve).union(shelf)
     # pipette: body clearance (from below, through wall and sleeve), knob hole in the ledge
-    part = part.cut(prism(outline, s["body_bottom"] - 30, yt - s["body_bottom"] + 30, p.clr))
-    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.knob_hole_d, yt - 1, yt + p.ledge_t + 1))
+    part = part.cut(prism(outline, s["body_bottom"] - p.body_cut_below, yt - s["body_bottom"] + p.body_cut_below, p.clr))
+    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.knob_hole_d, yt - o, yt + p.ledge_t + o))
     # ejector button: insertion slot along the sleeve, window at the top (open upward for the arm)
-    part = part.cut(box(p.pip_x - p.ej_hw - 0.6, p.pip_x + p.ej_hw + 0.6, yb - 1, yt,
-                        p.pip_z + p.ej_d0 - 0.5, p.env_z + 1))
-    part = part.cut(box(p.pip_x - 8.0, p.pip_x + 8.0, yt - p.eject_win_h, yt + p.ledge_t + 1,
-                        p.pip_z + p.eject_win_d, p.env_z + 1))
+    part = part.cut(box(p.pip_x - p.ej_hw - p.ej_slot_clr, p.pip_x + p.ej_hw + p.ej_slot_clr, yb - o, yt,
+                        p.pip_z + p.ej_d0 - p.ej_slot_z, p.env_z + o))
+    part = part.cut(box(p.pip_x - p.eject_win_hw, p.pip_x + p.eject_win_hw, yt - p.eject_win_h, yt + p.ledge_t + o,
+                        p.pip_z + p.eject_win_d, p.env_z + o))
+    # ledge relief between the two front screw channels (no loose ledge slivers between knob hole,
+    # channels and window)
+    h = p.mot_holes / 2
+    part = part.cut(box(p.pip_x - h, p.pip_x + h, yt - o, yt + p.ledge_t + o, p.pip_z, p.pip_z + p.eject_win_d))
     # volume window through the mount wall (readable off the robot)
-    part = part.cut(box(p.mount_x - 1, p.pip_x - p.body_hw, s["body_bottom"] + p.disp_y[0],
-                        s["body_bottom"] + p.disp_y[1], p.pip_z - 6.0, p.pip_z + 6.0))
+    part = part.cut(box(p.mount_x - o, p.pip_x - p.body_hw, s["body_bottom"] + p.disp_y[0],
+                        s["body_bottom"] + p.disp_y[1], p.pip_z - p.disp_hw, p.pip_z + p.disp_hw))
     # inserts in the mount face
     for y, z in p.inserts:
-        part = part.cut(cyl_x(y, z, p.insert_d, p.mount_x - 1, p.insert_x_end))
-        part = part.cut(cyl_x(y, z, 6.0, p.mount_x - 1, p.mount_x + 0.3))
-    # grub screws (M3, tapped 2.5) from the mount face onto the -x flat, heads recessed 1 mm
+        part = part.cut(cyl_x(y, z, p.insert_d, p.mount_x - o, p.insert_x_end))
+        part = part.cut(cyl_x(y, z, p.insert_cb_d, p.mount_x - o, p.mount_x + p.insert_cb_h))
+    # grub screws (M3, tapped 2.5) from the mount face onto the -x flat
     for yy in p.grub_y:
-        part = part.cut(cyl_x(s["body_bottom"] + yy, p.pip_z, 2.5, p.mount_x - 1, p.pip_x - p.body_hw + 1))
+        part = part.cut(cyl_x(s["body_bottom"] + yy, p.pip_z, p.grub_d, p.mount_x - o, p.pip_x - p.body_hw + p.grub_into))
     # motor: pilot recess, boss hole, 4 x M2 through, screwdriver channels down through the ledge
-    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.mot_pilot_d + 0.4, y1 - p.mot_pilot_h - 0.4, y1 + 1))
-    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.mot_boss_d + 0.8, y1 - p.shelf_t - 1, y1 + 1))
-    h = p.mot_holes / 2
+    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.mot_pilot_d + p.pilot_clr, y1 - p.mot_pilot_h - p.pilot_clr, y1 + o))
+    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.mot_boss_d + p.boss_clr, y1 - p.shelf_t - o, y1 + o))
     for dx in (-h, h):
         for dz in (-h, h):
-            part = part.cut(cyl_y(p.pip_x + dx, p.pip_z + dz, 2.4, y1 - p.shelf_t - 1, y1 + 1))
-            part = part.cut(cyl_y(p.pip_x + dx, p.pip_z + dz, 4.4, yt - 1, y1 - p.shelf_t + 1.0))
+            part = part.cut(cyl_y(p.pip_x + dx, p.pip_z + dz, p.m2_clear_d, y1 - p.shelf_t - o, y1 + o))
+            part = part.cut(cyl_y(p.pip_x + dx, p.pip_z + dz, p.driver_d, yt - o, y1 - p.shelf_t + o))
     # identity PCB: header window through the wall, 2 x M2.5 self-tapping holes beside it
-    part = part.cut(box(p.mount_x - 1, p.wall_x1 + 1, p.hdr_y - p.hdr_l / 2, p.hdr_y + p.hdr_l / 2,
+    part = part.cut(box(p.mount_x - o, p.wall_x1 + o, p.hdr_y - p.hdr_l / 2, p.hdr_y + p.hdr_l / 2,
                         p.hdr_z - p.hdr_w / 2, p.hdr_z + p.hdr_w / 2))
-    for y in (p.hdr_y - p.hdr_l / 2 - 3.5, p.hdr_y + p.hdr_l / 2 + 3.5):
-        part = part.cut(cyl_x(y, p.hdr_z, 2.2, p.wall_x1 - 6, p.wall_x1 + 1))
+    for y in (p.hdr_y - p.hdr_l / 2 - p.pcb_hole_off, p.hdr_y + p.hdr_l / 2 + p.pcb_hole_off):
+        part = part.cut(cyl_x(y, p.hdr_z, p.pcb_hole_d, p.wall_x1 - p.hole_depth, p.wall_x1 + o))
     # home switch seat: two M2 pilot holes in the wall face, switch hangs lever-down
-    sy0 = switch_y0(p)
-    for k in (0, 1):
-        z = p.sw_z0 + (p.sw_l - 6.5) / 2 + 6.5 * k
-        part = part.cut(cyl_x(sy0 + p.sw_h - 2.9, z, 1.8, p.wall_x1 - 6, p.wall_x1 + 1))
-    # trim to the envelope; drop ledge slivers left between knob hole, screw channels and window
-    part = part.intersect(box(p.mount_x, p.env_x1, p.plate_y0 - 1, y_top + 1, -p.env_z, p.env_z))
-    return cq.Workplane().add(max(part.solids().vals(), key=lambda b: b.Volume()))
+    for z in switch_hole_z(p):
+        part = part.cut(cyl_x(s["sw_y0"] + p.sw_h - p.sw_hole_down, z, p.sw_pilot_d, p.wall_x1 - p.hole_depth,
+                              p.wall_x1 + o))
+    # trim to the GEN2 envelope
+    return part.intersect(box(p.mount_x, p.env_x1, p.plate_y0 - o, y_top + o, -p.env_z, p.env_z))
+
+
+def switch_hole_z(p):
+    z0 = p.sw_z0 + (p.sw_l - p.sw_pitch) / 2
+    return z0, z0 + p.sw_pitch
 
 
 def switch_y0(p):
     """Bottom of the switch body; the lever hangs 1.5 below it and ends 0.2 above the tab at 'top'."""
-    return stack(p)["top"] + 0.2 + 1.5
+    return stack(p)["sw_y0"]
 
 
 def yoke(p, travel=0.0, eject=False):
@@ -279,29 +373,28 @@ def yoke(p, travel=0.0, eject=False):
     pins, and an arm carrying an M3 adjust screw above the ejector button."""
     s = stack(p)
     yt = s["top"] - travel
-    yp = yt - p.yoke_total                                       # pad face (rigid) / relaxed pad face
+    o = p.cut_over
     part = cyl_y(p.pip_x, p.pip_z, p.yoke_d, yt - p.disc_h, yt)
     if not eject:
-        part = part.union(cyl_y(p.pip_x, p.pip_z, p.pad_d, yp, yt - p.disc_h))
+        part = part.union(cyl_y(p.pip_x, p.pip_z, p.pad_d, s["pad_face"] - travel, yt - p.disc_h))
     else:
-        sb = yp + p.nose_out                                     # skirt bottom
+        sb = s["skirt_y0"] - travel                              # skirt bottom
         skirt = cyl_y(p.pip_x, p.pip_z, p.yoke_d, sb, yt - p.disc_h)
-        skirt = skirt.cut(cyl_y(p.pip_x, p.pip_z, p.skirt_id, sb - 1, yt - p.disc_h))
-        slot_top = sb + 2.5 + p.eject_stroke + p.eject_over + 1.0 + 1.2
-        skirt = skirt.cut(box(p.pip_x - 10, p.pip_x + 10, sb + 1.3, slot_top, p.pip_z - 1.2, p.pip_z + 1.2))
+        skirt = skirt.cut(cyl_y(p.pip_x, p.pip_z, p.skirt_id, sb - o, yt - p.disc_h))
+        skirt = skirt.cut(box(p.pip_x - p.slot_half_len, p.pip_x + p.slot_half_len, sb + p.slot_y0,
+                              s["slot_y1"] - travel, p.pip_z - p.slot_hw, p.pip_z + p.slot_hw))
         part = part.union(skirt)
-        ym = sb + 4.0                                            # arm bar
+        ym = s["arm_y0"] - travel                                # arm bar
         z0, z1 = p.pip_z + p.skirt_id / 2, p.pip_z + p.arm_r + p.arm_t / 2
         part = part.union(box(p.pip_x - p.arm_w / 2, p.pip_x + p.arm_w / 2, ym, ym + p.arm_t, z0, z1))
-        y_tip = s["ej_top"] + s["u_eject0"] - travel             # adjust-screw tip
-        yb0 = y_tip + p.screw_out
+        yb0 = s["arm_boss_y"] - travel                           # boss bottom, adjust screw sticks out below
         part = part.union(box(p.pip_x - p.arm_w / 2, p.pip_x + p.arm_w / 2, yb0, ym + p.arm_t,
                               p.pip_z + p.arm_r - p.arm_t / 2, z1))
         part = part.union(cyl_y(p.pip_x, p.pip_z + p.arm_r, p.boss_d, yb0, yb0 + p.boss_h))
-        part = part.cut(cyl_y(p.pip_x, p.pip_z + p.arm_r, 2.5, yb0 - 1, ym + p.arm_t + 1))   # M3 tapped
+        part = part.cut(cyl_y(p.pip_x, p.pip_z + p.arm_r, p.m3_tap_d, yb0 - o, ym + p.arm_t + o))   # M3 tapped
     # switch tab toward -z, under the lever
-    part = part.union(box(0.0, p.pip_x, yt - 3.0, yt, p.sw_z0 + 1.0, p.pip_z))
-    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.insert_m25, yt - 6.0, yt + 1))
+    part = part.union(box(p.tab_x0, p.pip_x, yt - p.tab_h, yt, p.sw_z0 + p.tab_z_in, p.pip_z))
+    part = part.cut(cyl_y(p.pip_x, p.pip_z, p.insert_m25, yt - p.insert_m25_depth, yt + o))
     return part
 
 
@@ -309,46 +402,45 @@ def pad(p, travel=0.0, squeeze=0.0):
     """Eject variant: spring-loaded pad (flange inside the skirt, nose on the plunger button),
     retained by two M2 screws (pins) that ride in the skirt slots."""
     s = stack(p)
-    yp = s["top"] - travel - p.yoke_total + squeeze
-    sb = s["top"] - travel - p.yoke_total + p.nose_out
-    part = cyl_y(p.pip_x, p.pip_z, p.nose_d, yp, sb + 1.0 + squeeze)
-    part = part.union(cyl_y(p.pip_x, p.pip_z, p.flange_d, sb + 1.0 + squeeze, sb + 1.0 + p.flange_h + squeeze))
-    return part.cut(cyl_x(sb + 2.5 + squeeze, p.pip_z, 1.6, p.pip_x - 8, p.pip_x + 8))
+    yp = s["pad_face"] - travel + squeeze
+    sb = s["skirt_y0"] - travel + squeeze
+    part = cyl_y(p.pip_x, p.pip_z, p.nose_d, yp, sb + p.flange_gap)
+    part = part.union(cyl_y(p.pip_x, p.pip_z, p.flange_d, sb + p.flange_gap, sb + p.flange_gap + p.flange_h))
+    return part.cut(cyl_x(sb + p.pin_y, p.pip_z, p.pin_d, p.pip_x - p.slot_half_len, p.pip_x + p.slot_half_len))
 
 
-STRIP = dict(w=127.76, d=85.48, h=60.0, plate_t=4.0, xs=(40.0, 64.0, 88.0), entry_y=60.0,
-             slot_len=22.0, slot_w=4.4, entry_d=9.5)   # slot_w: > cone at the plate, < 10 ul tip rim (MEASURE)
+def strip_xs(p):
+    return tuple(p.st_x1 + p.st_pitch * i for i in range(3))
 
 
 def stripper(p):
     """Deck-slot tip stripper (frame: x along the slot width, y up, z from the front edge = labware y).
     The tip enters a hole with its rim below the top plate, slides into the narrow slot,
     and the robot lifts: the rim catches under the plate. Tips drop into the tray below."""
-    s = STRIP
-    part = box(0, s["w"], 0, 3.0, 0, s["d"])
-    for x0 in (8.0, s["w"] - 14.0):
-        part = part.union(box(x0, x0 + 6.0, 0, s["h"], 20.0, s["d"] - 4.0))
-    part = part.union(box(8.0, s["w"] - 8.0, s["h"] - s["plate_t"], s["h"], 20.0, s["d"] - 4.0))
-    part = part.union(box(8.0, s["w"] - 8.0, 0, s["h"], s["d"] - 7.0, s["d"] - 4.0))   # back wall
-    for x in s["xs"]:
-        part = part.cut(cyl_y(x, s["entry_y"], s["entry_d"], s["h"] - s["plate_t"] - 1, s["h"] + 1))
-        part = part.cut(box(x - s["slot_w"] / 2, x + s["slot_w"] / 2, s["h"] - s["plate_t"] - 1, s["h"] + 1,
-                            s["entry_y"] - s["slot_len"], s["entry_y"]))
+    o, w, d, h = p.cut_over, p.st_w, p.st_d, p.st_h
+    part = box(0, w, 0, p.st_base_t, 0, d)
+    for x0 in (p.st_side_x, w - p.st_side_x - p.st_side_w):
+        part = part.union(box(x0, x0 + p.st_side_w, 0, h, p.st_front, d - p.st_back))
+    part = part.union(box(p.st_side_x, w - p.st_side_x, h - p.st_plate_t, h, p.st_front, d - p.st_back))
+    part = part.union(box(p.st_side_x, w - p.st_side_x, 0, h, d - p.st_back - p.st_back_t, d - p.st_back))   # back wall
+    for x in strip_xs(p):
+        part = part.cut(cyl_y(x, p.st_entry_z, p.st_entry_d, h - p.st_plate_t - o, h + o))
+        part = part.cut(box(x - p.st_slot_w / 2, x + p.st_slot_w / 2, h - p.st_plate_t - o, h + o,
+                            p.st_entry_z - p.st_slot_len, p.st_entry_z))
     return part
 
 
-def stripper_labware():
+def stripper_labware(p):
     """Opentrons labware definition (schema 2) so the robot knows the stripper's height;
     wells = the entry holes (load with ctx.load_labware_from_definition)."""
-    s = STRIP
-    wells = {f"A{i + 1}": {"depth": s["plate_t"], "totalLiquidVolume": 0, "shape": "circular",
-                           "diameter": s["entry_d"], "x": x, "y": s["entry_y"], "z": s["h"] - s["plate_t"]}
-             for i, x in enumerate(s["xs"])}
+    wells = {f"A{i + 1}": {"depth": p.st_plate_t, "totalLiquidVolume": 0, "shape": "circular",
+                           "diameter": p.st_entry_d, "x": x, "y": p.st_entry_z, "z": p.st_h - p.st_plate_t}
+             for i, x in enumerate(strip_xs(p))}
     return {
         "ordering": [[k] for k in wells], "brand": {"brand": "openUC2", "brandId": []},
         "metadata": {"displayName": "openUC2 tip stripper (ONiLAB tool)", "displayCategory": "other",
                      "displayVolumeUnits": "µL", "tags": []},
-        "dimensions": {"xDimension": s["w"], "yDimension": s["d"], "zDimension": s["h"]},
+        "dimensions": {"xDimension": p.st_w, "yDimension": p.st_d, "zDimension": p.st_h},
         "wells": wells,
         "groups": [{"metadata": {"wellBottomShape": "flat"}, "wells": list(wells)}],
         "parameters": {"format": "irregular", "quirks": [], "isTiprack": False, "isMagneticModuleCompatible": False,
@@ -402,15 +494,17 @@ def actuator(p, travel=0.0):
 def switch(p):
     sy0 = switch_y0(p)
     b = box(p.wall_x1, p.wall_x1 + p.sw_w, sy0, sy0 + p.sw_h, p.sw_z0, p.sw_z0 + p.sw_l)
-    lever = box(p.wall_x1 + 1.5, p.wall_x1 + 4.3, sy0 - 1.5, sy0, p.sw_z0 + 1, p.sw_z0 + p.sw_l - 1)
+    lever = box(p.wall_x1 + p.lever_x0, p.wall_x1 + p.lever_x1, sy0 - p.lever_drop, sy0,
+                p.sw_z0 + p.lever_inset, p.sw_z0 + p.sw_l - p.lever_inset)
     return b.union(lever)
 
 
 def identity_pcb(p):
     """Perfboard on the wall face with the shrouded 2x5 header through the window (facing -x)."""
-    b = box(p.wall_x1, p.wall_x1 + 1.6, p.hdr_y - p.hdr_l / 2 - 6, p.hdr_y + p.hdr_l / 2 + 6,
-            p.hdr_z - 5.5, min(p.hdr_z + 5.5, p.env_z))
-    hdr = box(p.mount_x + 0.5, p.wall_x1, p.hdr_y - 10.15, p.hdr_y + 10.15, p.hdr_z - 4.45, p.hdr_z + 4.45)
+    b = box(p.wall_x1, p.wall_x1 + p.pcb_t, p.hdr_y - p.hdr_l / 2 - p.pcb_margin, p.hdr_y + p.hdr_l / 2 + p.pcb_margin,
+            p.hdr_z - p.pcb_hw, min(p.hdr_z + p.pcb_hw, p.env_z))
+    hdr = box(p.mount_x + p.hdr_in, p.wall_x1, p.hdr_y - p.hdr_body_l / 2, p.hdr_y + p.hdr_body_l / 2,
+              p.hdr_z - p.hdr_body_w / 2, p.hdr_z + p.hdr_body_w / 2)
     return b.union(hdr)
 
 
@@ -505,6 +599,9 @@ def main():
     parts = build(p)
     s = stack(p)
     res = checks(p, parts)
+    bad = pipette_params.check(p, stack)
+    res.append(("ok " if not bad else "FAIL", "Inventor parameter table (pipette_params.py) reproduces stack()"
+                + ("" if not bad else f": {bad}")))
     for st, msg in res:
         print(f"[{st}] {msg}")
     names = {"frame": f"{NAME} - frame", "yoke": f"{NAME} - yoke", "yoke_eject": f"{NAME} - yoke eject variant",
@@ -532,7 +629,7 @@ def main():
     report ={"params": asdict(p), "stack": {k: round(v, 2) for k, v in s.items()},
               "checks": [{"status": st, "msg": m} for st, m in res]}
     (OUT / f"{NAME} - build.json").write_text(json.dumps(report, indent=1))
-    (OUT / "openuc2_tipstripper_3_slot.json").write_text(json.dumps(stripper_labware(), indent=1, ensure_ascii=False),
+    (OUT / "openuc2_tipstripper_3_slot.json").write_text(json.dumps(stripper_labware(p), indent=1, ensure_ascii=False),
                                                          encoding="utf-8")
     print(json.dumps(report["stack"], indent=1))
     sys.stdout.flush()

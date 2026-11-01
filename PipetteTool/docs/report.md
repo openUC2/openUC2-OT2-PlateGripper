@@ -1,11 +1,17 @@
 # A 0.1–2.5 µl ONiLAB pipette as a native OT-2 tool
 
-openUC2 · OT-2 lab automation · prototype V0.2 · 31 Oct 2026
+openUC2 · OT-2 lab automation · prototype V0.3 · 1 Nov 2026
 
 Research on the OT-2 pipette interface, prior art, and a printable holder with motor, identity
 electronics and protocol code. Files live in `PipetteTool/` of the openUC2-OT2-PlateGripper
 repository. This page is the markdown version of the shared report (V0.1, 30 Oct), brought up to
-V0.2; engineering details are in the design note [pipette_tool.md](pipette_tool.md).
+V0.3; engineering details are in the design note [pipette_tool.md](pipette_tool.md).
+
+**New in V0.3:**
+- The Inventor model is native and parametric. One parameter part drives every part and both
+  assemblies, and an assembly parameter `travel` moves the plunger stroke.
+- An ESP32-S3 can replace the identity EEPROM.
+- The frame's ledge is cut back between the two front screw channels.
 
 ## The short answer
 
@@ -55,7 +61,7 @@ anything in. Pin drawing and wiring: [electronics/README.md](../electronics/READ
 | Route | What it gives | Cost / risk | Use for |
 |---|---|---|---|
 | **Native ribbon**: EEPROM + switch + our stepper on pins 7–10 | Standard API, App, Protocol Designer, calibration, tip tracking. The robot moves the plunger itself. | Must live with the robot's driver currents. Volumes need a conversion layer (P20 µl/mm table). | **Plunger. Chosen.** |
-| **XIAO on the pipette I²C bus**, emulating the EEPROM | Identity in firmware; in principle a command channel through the DATA field (`M374`). | 5 V bus, 10 kHz, motors switched off on every transfer, private driver calls only. No motion commands. | Not recommended |
+| **ESP32-S3 on the pipette I²C bus**, emulating the EEPROM | Identity in firmware, no EEPROM to buy; ID set over USB. As a command channel (DATA field, `M374`) it is useless: private driver calls only, no motion commands. | 5 V bus (level shifter), 10 kHz; needs an S2/S3/C3-class chip that holds the clock while it answers. | **Identity: option B (V0.3)**; as a command channel, no |
 | **USB serial**: XIAO + driver, pyserial in the protocol | Full control of any extra motor or sensor (how the plate gripper works). | Cable from the gantry to the robot's USB port. Not visible to the App. | Tip-ejector motor, sensors |
 | **USB module imitation**: VID:PID 04d8:ee90, mag-deck G-code | `load_module("magnetic module")` → `engage(height)` moves a motor "natively". | Borrows Microchip's vendor ID (private use only). Semantics are a stretch. Nobody has published this. | Possible later |
 
@@ -96,13 +102,15 @@ anything in. Pin drawing and wiring: [electronics/README.md](../electronics/READ
 This rules out a motor beside the pipette: the actuator sits **coaxially above the plunger
 button**, and the whole tool stays inside the GEN2 outline up to the estimated top datum.
 
-## Prototype V0.2
+## Prototype V0.3
 
 ![Four views: blue printed frame, black YPF actuator above the green yoke, the pipette below in the sleeve; red dashes mark the GEN2 outline from the shroud line to the top datum](pipette_tool_views.png)
 
 ![Sections: full height through the axis with the P20 nozzle, shroud, adapter top, bar top and GEN2 datum lines; head detail of the eject variant with the travel marks](pipette_tool_section.png)
 
 ![Head of the eject variant with the spring pad and the gripper adapter as a red ghost](pipette_tool_head.png)
+
+![The native Inventor assembly, eject variant: frame, YPF actuator on the motor seat, yoke with the spring pad, identity board, pipette envelope](pipette_tool_inventor_eject.png)
 
 ### How it works
 
@@ -150,7 +158,7 @@ step decoding (a switch below blow-out can trigger a XIAO), but it needs USB pow
 firmware and room for a second actuator. **Recommendation: the same YPF 20K with a 19.05 or
 25.4 mm stroke and the eject variant.**
 
-### Checks the model runs (38 ok, 1 info)
+### Checks the model runs (39 ok, 1 info)
 
 - Motor rear 11.7 mm below the estimated top datum; cone end 5 mm below the P20 nozzle.
 - Frame, yokes and actuator inside the GEN2 outline; everything above the shroud line too.
@@ -158,7 +166,12 @@ firmware and room for a second actuator. **Recommendation: the same YPF 20K with
   and identity board; both yokes clear of frame and switch over the whole travel.
 - Insert axes, mount face and adapter top identical to `OT2-Gripper V1-1 - OT2-interface adapter`.
 - Info: ejection needs a stroke ≥ 18 mm.
-- Inventor assembly: no overlaps except the three heat-set inserts in their holes (by design).
+- Inventor assembly: no overlaps except the three heat-set inserts in their holes (by design),
+  also at blow-out and full stroke (`travel`); the tab trips the switch at −0.6 mm.
+- Native Inventor parts: all healthy, every dimension bound to a parameter. Fifteen parameters
+  were changed together and every part rebuilt; after reverting, all volumes were back. The
+  geometry matches the CadQuery parts within 0.1 %.
+- The ESP32-S3 sketch compiles (arduino-esp32 3.3.12); not yet tested on hardware.
 
 ### Parts
 
@@ -168,6 +181,7 @@ firmware and room for a second actuator. **Recommendation: the same YPF 20K with
 | YPF Motors 20K-2AB-12.7 linear actuator | 1 | CAD-new BUY part; rated current to be checked |
 | Ruthex inserts | 3 × M3, 1 × M2.5 | 3 in the mount face, 1 in the yoke |
 | 24C02 EEPROM, 2×5 shrouded header, 100 nF, perfboard | 1 | identity board; programme it with the XIAO sketch |
+| or: XIAO ESP32-S3 + BSS138 level shifter, 10 k + 15 k (+ the header and perfboard) | 1 | option B: no EEPROM; `firmware/ot2_eeprom_emulator_esp32s3` |
 | Omron D2F-L micro switch | 1 | home switch, 2 × M2 self-tapping |
 | M2×6 (motor), M3 grub screws (clamp), JST-XH 4- and 2-pin | 4 / 2 / 1+1 | |
 | Eject variant only: spring pad, M3×12 + nut, 2 × M2 pins, compression spring | 1 | spring: preload above the blow-out force, ≥ 8 mm travel |
@@ -200,10 +214,11 @@ firmware and room for a second actuator. **Recommendation: the same YPF 20K with
 
 | Path in `PipetteTool/` | Content |
 |---|---|
-| `cad/pipette_tool.py`, `cad/out/` | Parametric model, checks, STEP/STL of frame, yokes, spring pad, stripper and assemblies, plus the stripper labware JSON (V0.1: commit `c8f2271`) |
+| `cad/pipette_tool.py`, `cad/out/` | Parametric model, checks, STEP/STL of frame, yokes, spring pad, stripper and assemblies, plus the stripper labware JSON (V0.1: commit `c8f2271`, V0.2: `aa6b085`) |
 | `cad/ref/` | Reference STEPs: gripper interface adapter, ONiLAB-Dev-Core, YPF 20K, Joy-IT |
-| `INVENTOR/OT2-Pipette V0.2.iam`, `- eject variant.iam` (built by `cad/build_inventor.py`) | Inventor assemblies with the CAD-new YPF actuator, inserts and the OT-2 mount bar reference |
-| `firmware/ot2_eeprom_writer/` | XIAO/Arduino sketch that writes the OT-2 identity into a 24C02 |
+| `INVENTOR/OT2-Pipette V0.3 - parameters.ipt`, 8 native parts, `OT2-Pipette V0.3.iam`, `- eject variant.iam` (built by `cad/build_inventor.py`, checked by `cad/check_native.py`) | Native parametric Inventor model: one parameter part linked into every part and assembly; constrained assemblies with the CAD-new YPF actuator, inserts and the OT-2 mount bar reference |
+| `firmware/ot2_eeprom_writer/` | XIAO/Arduino sketch that writes the OT-2 identity into a 24C02 (and reads the emulator like the robot) |
+| `firmware/ot2_eeprom_emulator_esp32s3/` | XIAO ESP32-S3 sketch that answers the robot like the EEPROM |
 | `electronics/README.md` | Ribbon pinout, identity board, plug position, motor, checks on the robot |
 | `ot2/onilab_tool.py`, `configure_pipette.py` | Plunger positions, currents and the volume map; writes them to the robot over HTTP |
 | `ot2/example_protocol_onilab.py` | Protocol in real µl, with tip stripping |
@@ -222,5 +237,5 @@ firmware and room for a second actuator. **Recommendation: the same YPF 20K with
 - YPF Motors 20K-2AB-12.7: openUC2-CAD-new `BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors.ipt`; [Joy-IT NEMA08-04LA](https://joy-it.net/en/products/NEMA08-04LA) (V0.1)
 
 ---
-openUC2 · OT2-Pipette V0.2 · repository state of 31 Oct 2026. Nothing is printed or tested on a
+openUC2 · OT2-Pipette V0.3 · repository state of 1 Nov 2026. Nothing is printed or tested on a
 robot yet; values marked MEASURE in the code are estimates.

@@ -1,4 +1,4 @@
-# OT2-Pipette V0.2 — ONiLAB 0.1–2.5 µl pipette as a native OT-2 tool
+# OT2-Pipette V0.3 — ONiLAB 0.1–2.5 µl pipette as a native OT-2 tool
 
 Design note: what was built, the decisions, the numbers and where they come from, the checks
 and the open points. The shareable overview is [report.md](report.md).
@@ -16,29 +16,85 @@ and the open points. The shareable overview is [report.md](report.md).
   Opentrons-style ejection or a second motor? Can Science-Jubilee tell where the mount sits on a
   GEN2 and where the ribbon plug lands? Tips: standard 10 µl tips. Convert the shared report to
   markdown in the repo.
+- **2026-11-01 (V0.3).** Turn the Inventor files into truly editable, parametric parts and
+  assemblies instead of imported solid bodies. Can an ESP32-S3 (plenty in stock) stand in for the
+  I²C EEPROM?
 
 ## What was built
 
 | File | What |
 |---|---|
-| `cad/pipette_tool.py` | parametric CadQuery model + 39 checks + exports (`uv run --with cadquery python pipette_tool.py`) |
-| `cad/out/OT2-Pipette V0.2 - frame.step/.stl` | one printed part: mount wall with the 3 inserts, sleeve + ledge, header window, motor shelf; 32.3 × 205.3 × 37.5 mm, 65 cm³ |
-| `cad/out/OT2-Pipette V0.2 - yoke.step/.stl` | rigid yoke on the actuator's M2.5 shaft end (Ruthex insert), pad face 0.5 mm above the plunger button, switch tab |
-| `cad/out/OT2-Pipette V0.2 - yoke eject variant`, `- spring pad` | eject variant: skirt with a spring pad (2 M2 pins in slots) and an arm with an M3 adjust screw over the ejector button |
-| `cad/out/OT2-Pipette V0.2 - tip stripper` + `openuc2_tipstripper_3_slot.json` | deck-slot stripper (slot 4.4 mm for 10 µl tips) and its OT-2 labware definition |
-| `cad/out/OT2-Pipette V0.2 - assembly.step`, `- assembly eject.step` | frame, yoke(s), YPF actuator, switch, identity board, ONiLAB envelope |
-| commit `c8f2271` | V0.1 (Joy-IT, top datum assumed at the adapter top) |
+| `cad/pipette_tool.py` | parametric CadQuery model + 40 checks + exports (`uv run --with cadquery python pipette_tool.py`); every number is a field of `P` |
+| `cad/out/OT2-Pipette V0.3 - frame.step/.stl` | one printed part: mount wall with the 3 inserts, sleeve + ledge, header window, motor shelf; 32.3 × 205.3 × 37.5 mm, 65 cm³ |
+| `cad/out/OT2-Pipette V0.3 - yoke.step/.stl` | rigid yoke on the actuator's M2.5 shaft end (Ruthex insert), pad face 0.5 mm above the plunger button, switch tab |
+| `cad/out/OT2-Pipette V0.3 - yoke eject variant`, `- spring pad` | eject variant: skirt with a spring pad (2 M2 pins in slots) and an arm with an M3 adjust screw over the ejector button |
+| `cad/out/OT2-Pipette V0.3 - tip stripper` + `openuc2_tipstripper_3_slot.json` | deck-slot stripper (slot 4.4 mm for 10 µl tips) and its OT-2 labware definition |
+| `cad/out/OT2-Pipette V0.3 - assembly.step`, `- assembly eject.step` | frame, yoke(s), YPF actuator, switch, identity board, ONiLAB envelope |
+| commits `c8f2271`, `aa6b085` | V0.1 (Joy-IT, top datum assumed at the adapter top); V0.2 (Inventor files imported from STEP) |
 | `cad/ref/YPF-20K-2AB-12.7.stp` | the CAD-new motor, exported from Inventor |
-| `cad/render_pipette_tool.py` | the figures below |
-| `cad/build_inventor.py` → `INVENTOR/OT2-Pipette V0.2.iam`, `- eject variant.iam` | Inventor assemblies: the printed parts and reference solids imported from the STEP exports, the CAD-new YPF actuator in place, 3 Ruthex inserts, the OT-2 mount bar reference model, the gripper adapter and ONiLAB-Dev-Core (hidden); interference checked |
+| `cad/render_pipette_tool.py`, `cad/render_inventor.py` | the figures below (CadQuery; Inventor off-screen render of the native assemblies) |
+| `cad/pipette_params.py` | the Inventor parameter table: the fields of `P` + the stack as expressions (208 parameters); checked against `stack()` |
+| `cad/build_inventor.py` → `INVENTOR/OT2-Pipette V0.3 - parameters.ipt` + 8 native parts + `OT2-Pipette V0.3.iam`, `- eject variant.iam` | **native, parametric Inventor model** (below) |
+| `cad/check_native.py` | native parts vs CadQuery parts (STEP, volume + 20 000-point sampling) |
+| `cad/cadlib/` | Inventor COM helpers (copy of openuc2-frame-opm's, plus linked parameter parts and `min(a; b)`) |
 | `ot2/onilab_tool.py`, `configure_pipette.py`, `example_protocol_onilab.py` | robot numbers (1 mm lead), settings writer, real-µl protocol (passes `opentrons_simulate` 8.8.2) |
-| `electronics/README.md`, `firmware/ot2_eeprom_writer/` | pinout (checked against the EAGLE files), identity board, EEPROM writer |
+| `electronics/README.md`, `firmware/ot2_eeprom_writer/` | pinout (checked against the EAGLE files), identity board, EEPROM writer (also the bench tester for the emulator) |
+| `firmware/ot2_eeprom_emulator_esp32s3/` | **XIAO ESP32-S3 as the identity EEPROM** (option B in `electronics/README.md`) |
 
 ![views](pipette_tool_views.png)
 ![section](pipette_tool_section.png)
 ![head](pipette_tool_head.png)
 
-## What changed from V0.1, and why
+## The native Inventor model (V0.3)
+
+![Inventor, eject variant](pipette_tool_inventor_eject.png)
+
+- **One place to edit:** `INVENTOR/OT2-Pipette V0.3 - parameters.ipt` holds all 208 values as
+  exported user parameters, with comments. That is every field of `P` plus the stack as
+  expressions (`body_top = body_bottom + body_len`, `mot_front = retracted + shaft_out`,
+  `shelf_x1 = min(...; ...)`, ...). Every part and both assemblies **link** it (Parameters →
+  Link): change `datum_y` there, update the assembly, and everything moves.
+- **Parts are real features.** Every sketch dimension, work-plane offset and extent is an
+  expression over those names, so 0 dimensions are fixed numbers. The parts are frame, rigid
+  yoke, eject yoke, spring pad, tip stripper, ONiLAB envelope, identity board and switch
+  placeholders; their names say what they are, e.g. "sleeve and ledge", "body clearance",
+  "ejector button slot", "ledge relief". The pipette outline is a real arc-and-line sketch. The
+  sleeve and the clearance cut are offsets of it, driven by `wall_out` (= `clr + wall`) and `clr`.
+- **The assemblies are constrained, not placed.** The frame is grounded. Its named work
+  features (`WP motor seat`, `WP pipette x/z`, `WP mount face`, `WA insert 1-3`,
+  `WA pipette axis`) carry the rest:
+  - the CAD-new YPF actuator sits on the motor seat and the pipette axis;
+  - the Ruthex inserts mate their insert axes, 5.7 mm into the mount face;
+  - the other parts are flush with the frame's planes.
+  The OT-2 reference model, gripper adapter and Dev-Core keep their offsets as assembly
+  parameters. **Assembly parameter `travel`** (real mm below the robot's 'top') drives the yoke,
+  and `min(travel; u_blowout)` drives the spring pad. Constraints → Drive on it shows the stroke.
+- **Flex test** (every build): 15 values changed at once in the parameter part, including
+  `datum_y`, `body_len`, `body_r`, `nose_r`, `knob_hole_d`, `wall`, `clr`, `mot_len`, `hdr_y`,
+  `yoke_d`, `arm_r` and `st_slot_w`. All 8 parts rebuilt healthy and moved by the expected
+  amounts; after reverting, every volume is back to the last 0.01 mm³.
+- **Same geometry as CadQuery:** `check_native.py` compares the STEP of every native part with
+  the CadQuery export. Yokes, pad, stripper, board and switch are identical. The frame differs
+  by 1.4 mm³ in 65 340 mm³ and the envelope by 55 mm³, because CadQuery draws the pipette arcs
+  as 24-segment polylines.
+- Python stays the generator and the checker (the 40 checks run on the same values). Values
+  you change in Inventor can be carried back with `cadlib.native_part.read_user_parameters`.
+- The V0.2 imported bodies (`INVENTOR/OT2-Pipette V0.2*`, `REF - ONiLAB envelope.ipt`, ...)
+  are superseded; they stay until the V0.2 assembly is closed in Inventor.
+
+## What changed in V0.3
+
+1. **Native, parametric Inventor model** (above) instead of STEP imports.
+2. **Ledge relief:** the ledge between the two front screwdriver channels (15.4 × 8.5 mm, beside
+   the knob hole) is cut away. Before, that cut left two loose 3 mm³ slivers that the CadQuery
+   model silently dropped. Now the frame is one solid by construction, in both models.
+3. **Every number in `P`:** the constants that were written into the geometry functions (wall
+   fillet 4, gusset 2.5, clearances, hole sizes, stripper dimensions, ...) are fields with
+   comments, so the Inventor table carries them.
+4. **ESP32-S3 instead of the EEPROM (option B):** the sketch and wiring are in
+   `electronics/README.md`. It compiles but is not yet tested on hardware.
+
+## What changed from V0.1 (V0.2), and why
 
 1. **The GEN2 top datum is ~115 mm above the gripper adapter's top, not level with it.** V0.1
    assumed level. Three independent estimates disagree with that:
@@ -85,8 +141,9 @@ and the open points. The shareable overview is [report.md](report.md).
 
 ## How it works
 
-1. **Identity (I²C).** A 24C02 answers at 0x50/0x51 with the `opentron` signature and model
-   `p20_single_v2.2`; the OT-2 treats the tool as a P20 Single-Channel GEN2.
+1. **Identity (I²C).** A 24C02 (or an ESP32-S3 emulating it, option B) answers at 0x50/0x51
+   with the `opentron` signature and model `p20_single_v2.2`; the OT-2 treats the tool as a P20
+   Single-Channel GEN2.
 2. **Plunger.** The robot's plunger driver moves the YPF actuator coaxially above the button.
    Travel u below the robot's 'top' (real mm): pad touches 0.5, first stop 5.5, blow-out 8.5;
    usable 11.2 (12.7 stroke − 1.2 above 'top' − 0.3 at the far end).
@@ -140,7 +197,7 @@ and the open points. The shareable overview is [report.md](report.md).
 - **Nozzle 5 mm below the P20's** (`nozzle_offset`) to keep 11.7 mm between the motor and the
   estimated top datum; pipette-offset calibration absorbs it.
 
-## Checks (`pipette_tool.py`: 38 ok, 1 info; `build_inventor.py`: interference)
+## Checks (`pipette_tool.py`: 39 ok, 1 info; `build_inventor.py`: flex test, constraints, interference; `check_native.py`)
 
 - Motor rear 11.7 mm below the estimated top datum; cone end 5.0 mm below the P20 nozzle.
 - Pipetting stroke fits (blow-out 8.5 of 11.2 mm); ejection needs a stroke ≥ 18 mm (info).
@@ -152,15 +209,24 @@ and the open points. The shareable overview is [report.md](report.md).
   pad clear of the frame.
 - Insert axes, mount face and adapter top identical to `OT2-Gripper V1-1 - OT2-interface adapter`.
 - Frame and the pipette above the shroud line (y = −105.3) inside the GEN2 outline.
-- Frame, yokes and pad are one solid each (two 3 mm³ ledge slivers between knob hole, screw
-  channels and window are dropped).
+- Frame, yokes and pad are one solid each (by construction since the ledge relief).
+- The Inventor parameter table reproduces `stack()` (all 29 derived heights).
 - `opentrons_simulate` 8.8.2 runs the example protocol including the stripper labware.
-- Inventor (`build_inventor.py`, both assemblies): 0 mm³ between frame and pipette envelope,
-  actuator, switch, identity board and the OT-2 mount bar; yoke(s) and pad clear of actuator,
-  envelope and frame; the three inserts overlap their 4.1 mm holes by 12.6 mm³ each (knurl, by
-  design); no missing references. The mount bar reference model, placed with its screw holes on
-  the insert axes, lands on the gripper adapter's outline (x −27.5…−9.5, y −53…123.65, z ±18.7),
-  and the CAD-new YPF part draws its shaft fully retracted, 1.2 mm above the robot's 'top'.
+- Inventor (`build_inventor.py`):
+  - **Parts:** all 8 healthy, 0 non-parametric dimensions; the flex test passes.
+  - **Constraints:** 30 (main) and 33 (eject variant), each checked to hold its part at the
+    designed pose. After reopening from disk: no unhealthy constraint and no missing reference.
+  - **Interference at travel 0:** 0 mm³ between the frame and the pipette envelope, actuator,
+    switch, identity board and OT-2 mount bar. The yoke(s) and pad are clear of the actuator,
+    envelope and frame. The three inserts overlap their 4.1 mm holes by 12.6 mm³ each (knurl,
+    by design).
+  - **`travel` sweep:** at −0.6 mm the tab enters the switch lever (9.6 mm³, it trips). At 8.5
+    and 11.2 mm the yokes and pad stay clear of the frame, switch and actuator, and the yoke
+    moved exactly `travel`.
+  - **References:** the mount bar reference model, placed with its screw holes on the insert
+    axes, lands on the gripper adapter's outline (x −27.5…−9.5, y −53…123.65, z ±18.7). The
+    CAD-new YPF part draws its shaft fully retracted, 1.2 mm above the robot's 'top'.
+- `check_native.py`: all 8 native parts match the CadQuery parts (see above).
 
 ## Open points (MEASURE before printing)
 
@@ -172,8 +238,11 @@ and the open points. The shareable overview is [report.md](report.md).
    where a 10 µl tip seals, the 10 µl tip's rim Ø and length.
 3. **Motor:** coil resistance / rated current; whether YPF has the 20K-2AB with 19.05 or 25.4 mm
    stroke and its length.
-4. **Finger hook** must be cut off (still the case).
-5. Gravimetric calibration of the real ↔ commanded volume map (10 dispenses at 0.25/0.5/1/2.5 µl).
+4. **ESP32-S3 option:** bench test with the writer sketch, then on the robot. Check that pin 6
+   holds 5 V with the XIAO attached. Decide where the XIAO sits (wall pocket or above the
+   motor; not in the CAD yet).
+5. **Finger hook** must be cut off (still the case).
+6. Gravimetric calibration of the real ↔ commanded volume map (10 dispenses at 0.25/0.5/1/2.5 µl).
 
 ## Next steps
 
@@ -181,5 +250,6 @@ and the open points. The shareable overview is [report.md](report.md).
   and yoke, test on the robot with the rigid yoke and the stripper.
 - With a ≥ 19 mm stroke actuator: print the eject variant, choose the spring (preload above the
   blow-out force, ≥ 8 mm travel), set `EJECT_BY_PLUNGER = True` in `ot2/onilab_tool.py`.
-- Native parametric Inventor parts from the confirmed parameters (cadlib NativePart) to replace the
-  imported bodies in `INVENTOR/`; CAD-new names/numbers if the tool moves into CAD-new.
+- Measured values go into `P` (then `pipette_tool.py` and `build_inventor.py`), or straight into
+  the parameter part in Inventor for a quick look. CAD-new names/numbers if the tool moves into
+  CAD-new.

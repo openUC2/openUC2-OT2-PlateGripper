@@ -1,0 +1,104 @@
+{
+ "frame": {
+  "cadquery_mm3": 65339.3,
+  "native_mm3": 65340.7,
+  "delta_mm3": 1.4,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 4,
+  "mismatch_mm3": 49.8,
+  "mismatch_region": [
+   11.6,
+   -2.8,
+   -15.6,
+   19.0,
+   25.4,
+   15.9
+  ],
+  "ok": true
+ },
+ "yoke": {
+  "cadquery_mm3": 4606.6,
+  "native_mm3": 4606.6,
+  "delta_mm3": 0.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 0,
+  "mismatch_mm3": 0.0,
+  "mismatch_region": null,
+  "ok": true
+ },
+ "yoke eject": {
+  "cadquery_mm3": 4046.6,
+  "native_mm3": 4046.6,
+  "delta_mm3": 0.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 0,
+  "mismatch_mm3": 0.0,
+  "mismatch_region": null,
+  "ok": true
+ },
+ "spring pad": {
+  "cadquery_mm3": 886.1,
+  "native_mm3": 886.1,
+  "delta_mm3": 0.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 0,
+  "mismatch_mm3": 0.0,
+  "mismatch_region": null,
+  "ok": true
+ },
+ "tip stripper": {
+  "cadquery_mm3": 113439.2,
+  "native_mm3": 113439.2,
+  "delta_mm3": 0.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 0,
+  "mismatch_mm3": 0.0,
+  "mismatch_region": null,
+  "ok": true
+ },
+ "envelope": {
+  "cadquery_mm3": 85201.6,
+  "native_mm3": 85256.6,
+  "delta_mm3": 55.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 6,
+  "mismatch_mm3": 58.7,
+  "mismatch_region": [
+   -2.4,
+   -65.5,
+   -15.7,
+   19.8,
+   34.3,
+   -7.7
+  ],
+  "ok": true
+ },
+ "board": {
+  "cadquery_mm3": 1807.6,
+  "native_mm3": 1807.6,
+  "delta_mm3": -0.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 0,
+  "mismatch_mm3": 0.0,
+  "mismatch_region": null,
+  "ok": true
+ },
+ "switch": {
+  "cadquery_mm3": 527.9,
+  "native_mm3": 527.9,
+  "delta_mm3": 0.0,
+  "bbox_delta_mm": 0.0,
+  "points": 20000,
+  "mismatch_points": 0,
+  "mismatch_mm3": 0.0,
+  "mismatch_region": null,
+  "ok": true
+ }
+}

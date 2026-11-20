@@ -96,7 +96,7 @@ def main():
     parts = t.build(p)
     s = t.stack(p)
     adapter = cq.importers.importStep(str(t.REF / "OT2-interface-adapter.stp"))
-    act, sw, pcb, pip = t.actuator(p), t.switch(p), t.identity_pcb(p), t.pipette(p)
+    act, sw, pcb, pip = t.actuator(p), t.switch(p), t.tool_board(p), t.pipette(p)
     items = [(parts["frame"], C["frame"], 1.0), (parts["yoke"], C["yoke"], 1.0), (act, C["act"], 1.0),
              (sw, C["sw"], 1.0), (pcb, C["pcb"], 1.0), (pip, C["pip"], 0.55)]
     env = envelope_edges(p, s["shroud_y"], p.datum_y)

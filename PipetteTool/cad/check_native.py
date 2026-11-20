@@ -22,7 +22,7 @@ from OCP.TopAbs import TopAbs_IN
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 NATIVE = OUT / "native"
-NAME = "OT2-Pipette V0.3"
+NAME = "OT2-Pipette V0.5"
 PAIRS = {
     "frame": (f"{NAME} - frame.step", f"{NAME} - frame.stp"),
     "yoke": (f"{NAME} - yoke.step", f"{NAME} - yoke.stp"),
@@ -30,7 +30,6 @@ PAIRS = {
     "spring pad": (f"{NAME} - spring pad.step", f"{NAME} - spring pad.stp"),
     "tip stripper": (f"{NAME} - tip stripper.step", f"{NAME} - tip stripper.stp"),
     "envelope": ("ref/REF - ONiLAB envelope.step", f"REF - {NAME} - ONiLAB envelope.stp"),
-    "board": ("ref/REF - identity board + 2x5 header.step", f"REF - {NAME} - identity board + 2x5 header.stp"),
     "switch": ("ref/BUY - Omron - micro switch - D2F-L.step", f"BUY - Omron - micro switch - D2F-L - {NAME} placeholder.stp"),
 }
 TOL_REL = 0.005          # 0.5 % of the part volume

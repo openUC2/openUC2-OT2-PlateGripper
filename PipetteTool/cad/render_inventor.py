@@ -12,7 +12,7 @@ from cadlib.inventor_helpers import close_if_open, safe, session  # noqa: E402
 
 INV = HERE.parent / "INVENTOR"
 DOCS = HERE.parent / "docs"
-NAME = "OT2-Pipette V0.3"
+NAME = "OT2-Pipette V0.5"
 HIDE = ("pipette envelope", "OT-2 mount bar", "gripper adapter", "ONiLAB-Dev-Core")
 
 
@@ -57,6 +57,10 @@ def main():
                 png = DOCS / f"pipette_tool_inventor{'_eject' if nm else ''}.png"
                 render(app, doc, png, eye=(260, 160, 230), target=(6, 40, 0), up=(0, 1, 0), extent=(150, 250))
                 print("  ->", png.name)
+                if not nm:   # the mount face: what the robot's mount bar sees (plug pocket, window, relief)
+                    png = DOCS / "pipette_tool_inventor_mountface.png"
+                    render(app, doc, png, eye=(-300, 110, 60), target=(-9.5, 60, 0), up=(0, 1, 0), extent=(110, 190))
+                    print("  ->", png.name)
             finally:
                 doc.Close(True)
     sys.stdout.flush()

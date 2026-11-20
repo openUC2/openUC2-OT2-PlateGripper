@@ -26,6 +26,8 @@ TUPLES = {
     "disp_y": ("disp_y0", "disp_y1"),
     "grub_y": ("grub_y1", "grub_y2"),
     "conn_y": ("conn_y0", "conn_y1"),
+    "brd_hole_x": ("brd_hole_x1", "brd_hole_x2"),
+    "brd_xiao_y": ("brd_xiao_y0", "brd_xiao_y1"),
 }
 # stack() key -> (Inventor name, expression); the order is the evaluation order
 DERIVED = [
@@ -62,8 +64,8 @@ DERIVED = [
 EXTRA = [   # convenience values used by several parts
     D("wall_out", "clr + wall", "mm", "sleeve outline offset from the body outline"),
     D("knob_y0", "knob_top - knob_h", "mm", "knob bottom at rest"),
-    D("pcb_y0", "hdr_y - hdr_l / 2 - pcb_margin", "mm", "identity board bottom"),
-    D("pcb_z1", "min(hdr_z + pcb_hw; env_z)", "mm", "identity board +z edge"),
+    D("brd_z_front", "brd_z_back + brd_t", "mm", "tool board face toward +z (tabs)"),
+    D("shelf_y0", "mot_front - shelf_t", "mm", "underside of the motor shelf"),
     D("st_x2", "st_x1 + st_pitch", "mm", "stripper entry hole 2"),
     D("st_x3", "st_x1 + 2 * st_pitch", "mm", "stripper entry hole 3"),
 ]

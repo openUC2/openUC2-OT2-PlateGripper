@@ -9,6 +9,45 @@ Two ways to answer the robot's EEPROM read:
 - **B: an ESP32-S3 that pretends to be the EEPROM** (XIAO ESP32-S3 + a BSS138 level shifter,
   section "Option B"): no EEPROM to buy, the ID is set over USB.
 
+## Tool board (V0.5, `pcb/`)
+
+One board, like Opentrons' pipette-main: robot header, identity, motor and switch plugs.
+
+![tool board](pcb/out/render_iso.png)
+
+| Part | Value | LCSC | Job |
+|---|---|---|---|
+| J1 | 2×5 box header, right angle | C9140 | robot ribbon; its face sits 0.55 mm inside the mount face at the plug position |
+| U1 | XIAO ESP32-S3 | (hand-fitted) | emulates the EEPROM; on its own pin headers, USB-C toward the open side |
+| Q1–Q3, R1–R3 | BSS138, 10 k | C7420339, C25804 | shifters 5 V ↔ 3.3 V for SCL, SDA and MIN (MIN → D3: the XIAO logs the home switch) |
+| R6, R7 | 10 k / 15 k | C25804, C22809 | ADDRESS (0 / 5 V) → D0 (0 / 3.0 V) |
+| U3 | SRV05-4 | C7420376 | ESD on SCL, SDA, MIN, ADDRESS |
+| D1, C2, C3 | B5819W, 10 µF, 100 nF | C8598, C15850, C14663 | ribbon +5 V → XIAO 5V (no back-feed from USB) |
+| C1 | 1 nF | C1588 | across the home switch, as on Opentrons' end-stop board |
+| J2, J3 | JST-XH 4P / 2P | C144395, C158012 | motor (1 = 1A, 2 = 1B, 3 = 2B, 4 = 2A), switch (COM, NC) |
+| U2, C4, R4, R5 | 24C02 SOIC-8, 100 nF, 10 k | C7562, C14663, C25804 | not fitted: option A instead of the XIAO, never both |
+
+- **Build it:** `python pcb/make.py` (KiCad 10 + `uv`). The steps:
+  - `netlist.py` (circuit, LCSC numbers) and `layout.py` (placement, board outline, where it sits
+    in the tool) go to KiCad;
+  - `route.py` routes both layers;
+  - pours, DRC, Gerbers and drill files (`out/jlcpcb/gerbers.zip`), `bom.csv` and `cpl.csv` for
+    JLCPCB assembly, `out/ot2_pipette_board.step` and the renders.
+  - Today: DRC 0 errors, 0 unconnected.
+- **Review it** by opening `out/ot2_pipette_board.kicad_pcb` in KiCad 10. There is no schematic
+  file yet; the circuit is the table above and `netlist.py`.
+- **In the tool:** the board stands upright beside the yoke (+z side), component side toward the
+  pipette, and is screwed with 2 × M2 to two tabs under the motor shelf. The frame has the
+  window, the plug pocket, the tabs and a 1.8 mm pocket behind the XIAO pins.
+- **The XIAO has no socket inside the tool.** A socket adds 5–8.5 mm and would hit the yoke
+  disc. Solder it on its supplied pin headers and keep the pins to ≤ 1.5 mm behind the board;
+  for a bench board, two 1×7 sockets (C2832270) fit the same pads.
+- **Order at JLCPCB:**
+  1. Upload `gerbers.zip` (2 layers, 1.6 mm).
+  2. For assembly, upload `bom.csv` and `cpl.csv`, then check each part's rotation in their
+     viewer, especially the SOT-23s and the headers.
+- **Firmware:** `../firmware/ot2_eeprom_emulator_esp32s3` (D4 SDA, D5 SCL, D0 ADDRESS, D3 MIN).
+
 ## OT-2 pipette connector (2×5, 2.54 mm, shrouded; 3M 30310-6002HB on Opentrons pipettes)
 
 Checked in Opentrons' published EAGLE files (github.com/Opentrons/ot2, "PCB files"):
@@ -41,6 +80,13 @@ is held low; pressed (yoke at the top) it opens and the robot's pull-up reads "h
 **Verify pin 1 on your robot before connecting** (checks below).
 
 ## Where the robot's plug lands
+
+**V0.5 (checked against Opentrons' OT-2 reference model and app/manual pictures):** on the LEFT
+mount the plug's centre is 22.5 mm above the two top screws and 9.3 mm toward the robot front;
+on the right mount it sits at the rear (16.5 mm behind the bar centre). The plug sits in a
+holder at the top of the mount; together with the round black part, this "top block" stands out
+of the mount face. A GEN2 clears it with a pocket around its header and a 5.5 mm recess 38–82 mm
+above the screws, and V0.5 copies both. The text below is the V0.2 estimate, kept for the record.
 
 On an Opentrons GEN2 single the 2×5 socket is on the pipette's mount-side face, near one edge
 of the 44.5 mm face, with its long side vertical (Science-Jubilee assembly guide photos). The

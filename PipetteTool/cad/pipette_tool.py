@@ -1,4 +1,4 @@
-"""ONiLAB 0.1-2.5 ul pipette as an OT-2 tool - parametric CadQuery model (prototype V0.3).
+"""ONiLAB 0.1-2.5 ul pipette as an OT-2 tool - parametric CadQuery model (prototype V0.5).
 
 Frame = the gripper's "OT2-interface adapter" frame, so both tools share one interface:
   x  away from the OT-2 mount bar (mount face at x = -9.5, the 3 M3 inserts point -x)
@@ -28,7 +28,8 @@ import pipette_params
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 REF = HERE / "ref"
-NAME = "OT2-Pipette V0.3"
+PCB_STEP = HERE.parent / "electronics" / "pcb" / "out" / "ot2_pipette_board.step"
+NAME = "OT2-Pipette V0.5"
 
 
 @dataclass
@@ -38,11 +39,12 @@ class P:
     env_x1: float = 22.84          # -9.5 + 32.34: inner edge of a GEN2 pipette (neighbour 1.7 mm further)
     env_z: float = 18.75           # half depth we allow (mount bar depth 37.5)
     adapter_top: float = 53.0      # top of OT2-Gripper V1-1 - OT2-interface adapter
-    datum_y: float = 168.0         # GEN2 top datum (MEASURE: photos + OT-2 reference model give 166-171)
+    datum_y: float = 172.0         # GEN2 top datum: 126 +-2 above the top screws (OT-2 reference CAD + API offsets,
+                                   # Jubilee photo; V0.2-V0.3 used 168) - MEASURE
     bar_top: float = 123.65        # top of the mount bar (OT-2 reference model, top screws at y = 46)
     p20_top_to_nozzle: float = 330.5
     shroud_drop: float = 273.3     # top datum 514.3 above deck at Z home, gantry shroud from 241
-    nozzle_offset: float = -5.0    # cone end above (+) the P20 GEN2 nozzle; -5 keeps headroom above the motor
+    nozzle_offset: float = -9.0    # cone end above (+) the P20 GEN2 nozzle (same pipette height as V0.3 with datum 168)
     # --- mount wall (insert pattern copied from OT2-Gripper V1-1 - OT2-interface adapter) ---
     plate_y0: float = -49.0        # bottom of the wall (bottom insert at -43)
     wall_x1: float = -2.2          # +x face of the wall (motor side face at -1.8)
@@ -181,19 +183,33 @@ class P:
     grub_y: tuple = (70.0, 108.0)  # M3 grub screws through the mount-side wall (above the body bottom)
     grub_d: float = 2.5            # tapped M3
     grub_into: float = 1.0         # hole ends this far past the -x flat
-    # --- identity PCB with the 2x5 header (3M 30310-6002HB class), header facing the mount ---
-    hdr_y: float = 76.0            # MEASURE: where the robot's plug lands (photos: ~64-67); PCB clears the ledge
-    hdr_z: float = 13.0            # MEASURE: side (+/-) to be checked on the robot
-    hdr_l: float = 20.9
-    hdr_w: float = 9.5
-    hdr_body_l: float = 20.3       # header body (placeholder)
-    hdr_body_w: float = 8.9
-    hdr_in: float = 0.5            # header front inside the mount face
-    pcb_t: float = 1.6
-    pcb_margin: float = 6.0        # board beyond the header ends, y
-    pcb_hw: float = 5.5            # board half width, z
-    pcb_hole_d: float = 2.2        # 2 x M2.5 self-tapping
-    pcb_hole_off: float = 3.5      # holes beyond the window ends
+    # --- robot side of the interface, LEFT mount (OT-2 reference CAD + Opentrons photos; MEASURE) ---
+    hdr_y: float = 68.5            # robot's 2x5 plug centre: 22.5 above the top screws ...
+    hdr_z: float = 9.3             # ... 9.3 toward the robot front (right mount: at the rear, z +16.5 mirrored)
+    hdr_l: float = 21.2            # window for the board's right-angle header body (20.36 x 8.9) + clearance
+    hdr_w: float = 9.7
+    plug_pocket_l: float = 29.0    # pocket in the mount face around the window, for the robot's plug holder
+    plug_pocket_w: float = 16.6
+    plug_pocket_d: float = 2.5
+    relief_y0: float = 84.0        # top-block relief: a GEN2 is 5.5 mm recessed 38-82 mm above the top screws
+    relief_y1: float = 128.0
+    relief_z0: float = -5.0        # relief from here to +z; the switch screws (z <= -6) keep the full wall
+    relief_d: float = 5.5
+    rib_z0: float = 6.3            # rib inside the relieved wall, between the yoke disc and the board
+    rib_z1: float = 13.2
+    rib_x1: float = 0.0
+    # --- tool board (electronics/pcb, layout.FRAME): vertical, component side toward the pipette axis ---
+    brd_x_ref: float = 21.8        # tool-frame x, y of KiCad (0, 0)
+    brd_y_ref: float = 112.0
+    brd_z_back: float = 13.75      # component side; the right-angle header body hangs 8.9 below it
+    brd_t: float = 1.6
+    brd_hole_x: tuple = (17.8, 4.2)  # 2 x M2 self-tapping into tabs under the motor shelf
+    brd_hole_y: float = 111.8
+    brd_tab_w: float = 6.0
+    brd_tab_below: float = 3.0     # tabs reach this far below the board holes
+    brd_pilot_d: float = 1.8
+    brd_back_clr: float = 1.8      # room behind the board for the soldered XIAO pins (cuts the +z gusset there)
+    brd_xiao_y: tuple = (88.5, 109.5)  # y range of the XIAO pins behind the board
     # --- deck-slot tip stripper (own frame: x along the slot width, y up, z from the front edge) ---
     st_w: float = 127.76           # SBS footprint
     st_d: float = 85.48
@@ -249,6 +265,10 @@ def cyl_y(x, z, d, y0, y1):
 
 def cyl_x(y, z, d, x0, x1):
     return cq.Workplane("YZ", origin=(x0, y, z)).circle(d / 2).extrude(x1 - x0)
+
+
+def cyl_z(x, y, d, z0, z1):
+    return cq.Workplane("XY", origin=(x, y, z0)).circle(d / 2).extrude(z1 - z0)
 
 
 def frustum(x, z, d0, d1, y0, y1):
@@ -314,7 +334,9 @@ def frame(p):
              .polyline([(x0, y1 - p.shelf_t), (sx1, y1 - p.shelf_t), (x0, y1 - p.shelf_t - s["gusset_h"])])
              .close().extrude(p.gusset_t))
         shelf = shelf.union(g)
-    part = wall.union(sleeve).union(shelf)
+    # rib on the inner side of the relieved wall, between the yoke disc and the board
+    rib = box(p.wall_x1 - o, p.rib_x1, p.relief_y0, y1 - p.shelf_t, p.rib_z0, p.rib_z1)
+    part = wall.union(sleeve).union(shelf).union(rib)
     # pipette: body clearance (from below, through wall and sleeve), knob hole in the ledge
     part = part.cut(prism(outline, s["body_bottom"] - p.body_cut_below, yt - s["body_bottom"] + p.body_cut_below, p.clr))
     part = part.cut(cyl_y(p.pip_x, p.pip_z, p.knob_hole_d, yt - o, yt + p.ledge_t + o))
@@ -344,11 +366,22 @@ def frame(p):
         for dz in (-h, h):
             part = part.cut(cyl_y(p.pip_x + dx, p.pip_z + dz, p.m2_clear_d, y1 - p.shelf_t - o, y1 + o))
             part = part.cut(cyl_y(p.pip_x + dx, p.pip_z + dz, p.driver_d, yt - o, y1 - p.shelf_t + o))
-    # identity PCB: header window through the wall, 2 x M2.5 self-tapping holes beside it
+    # robot plug: pocket in the mount face for its holder, window for the board's right-angle header
+    part = part.cut(box(p.mount_x - o, p.mount_x + p.plug_pocket_d, p.hdr_y - p.plug_pocket_l / 2,
+                        p.hdr_y + p.plug_pocket_l / 2, p.hdr_z - p.plug_pocket_w / 2, p.hdr_z + p.plug_pocket_w / 2))
     part = part.cut(box(p.mount_x - o, p.wall_x1 + o, p.hdr_y - p.hdr_l / 2, p.hdr_y + p.hdr_l / 2,
                         p.hdr_z - p.hdr_w / 2, p.hdr_z + p.hdr_w / 2))
-    for y in (p.hdr_y - p.hdr_l / 2 - p.pcb_hole_off, p.hdr_y + p.hdr_l / 2 + p.pcb_hole_off):
-        part = part.cut(cyl_x(y, p.hdr_z, p.pcb_hole_d, p.wall_x1 - p.hole_depth, p.wall_x1 + o))
+    # the mount's top block (plug holder, round part) sits in a relief, as on a GEN2
+    part = part.cut(box(p.mount_x - o, p.mount_x + p.relief_d, p.relief_y0, p.relief_y1, p.relief_z0, p.env_z + o))
+    # behind the board: room for the soldered XIAO pins (in the +z gusset)
+    part = part.cut(box(p.brd_x_ref - 22.0, p.brd_x_ref + o, p.brd_xiao_y[0], p.brd_xiao_y[1],
+                        p.brd_z_back + p.brd_t, p.brd_z_back + p.brd_t + p.brd_back_clr))
+    # board tabs under the motor shelf, M2 pilot holes from the board side
+    y_sh = s["mot_front"] - p.shelf_t
+    for x in p.brd_hole_x:
+        part = part.union(box(x - p.brd_tab_w / 2, x + p.brd_tab_w / 2, p.brd_hole_y - p.brd_tab_below, y_sh + 0.5,
+                              p.brd_z_back + p.brd_t, p.env_z))
+        part = part.cut(cyl_z(x, p.brd_hole_y, p.brd_pilot_d, p.brd_z_back + p.brd_t - o, p.env_z + o))
     # home switch seat: two M2 pilot holes in the wall face, switch hangs lever-down
     for z in switch_hole_z(p):
         part = part.cut(cyl_x(s["sw_y0"] + p.sw_h - p.sw_hole_down, z, p.sw_pilot_d, p.wall_x1 - p.hole_depth,
@@ -499,13 +532,23 @@ def switch(p):
     return b.union(lever)
 
 
-def identity_pcb(p):
-    """Perfboard on the wall face with the shrouded 2x5 header through the window (facing -x)."""
-    b = box(p.wall_x1, p.wall_x1 + p.pcb_t, p.hdr_y - p.hdr_l / 2 - p.pcb_margin, p.hdr_y + p.hdr_l / 2 + p.pcb_margin,
-            p.hdr_z - p.pcb_hw, min(p.hdr_z + p.pcb_hw, p.env_z))
-    hdr = box(p.mount_x + p.hdr_in, p.wall_x1, p.hdr_y - p.hdr_body_l / 2, p.hdr_y + p.hdr_body_l / 2,
-              p.hdr_z - p.hdr_body_w / 2, p.hdr_z + p.hdr_body_w / 2)
-    return b.union(hdr)
+def tool_board_fused(p):
+    """The tool board as ONE solid for Inventor (a multi-solid STEP comes in as an assembly): every
+    part is moved 0.15 mm into the board (KiCad exports the laminate ~0.09 mm thinner than the parts sit), then fused."""
+    sols = tool_board(p).val().Solids()
+    board = max(sols, key=lambda x: (x.BoundingBox().xlen * x.BoundingBox().ylen))
+    parts = [x.translate((0, 0, 0.15)) for x in sols if x is not board]
+    fused = board.fuse(*parts).clean()
+    return cq.Workplane().add(fused)
+
+
+def tool_board(p):
+    """The KiCad tool board (electronics/pcb/out/ot2_pipette_board.step, components included) in the
+    tool frame: KiCad STEP (x, y, z) -> (brd_x_ref - x, brd_y_ref + y, brd_z_back + brd_t - z), i.e.
+    turned 180 deg about y, component side toward -z (the pipette axis)."""
+    shape = cq.importers.importStep(str(PCB_STEP)).val()
+    shape = shape.rotate((0, 0, 0), (0, 1, 0), 180).translate((p.brd_x_ref, p.brd_y_ref, p.brd_z_back + p.brd_t))
+    return cq.Workplane().add(shape)
 
 
 # ----------------------------------------------------------------------------- checks
@@ -551,7 +594,20 @@ def checks(p, parts):
         "frame clear of the pipette with the button at blow-out and the ejector pressed")
     add(vol(fr.intersect(act)) < 0.5, "frame clear of the actuator")
     add(vol(fr.intersect(switch(p))) < 0.5, "frame clear of the switch")
-    add(vol(fr.intersect(identity_pcb(p))) < 0.5, "frame clear of the identity board and header")
+    brd = tool_board(p)
+    bb = brd.val().BoundingBox()
+    add(bb.xmin >= p.mount_x - 0.01 and bb.zmax <= p.env_z + 0.01 and bb.xmax <= p.env_x1 + 0.01,
+        f"tool board incl. parts: x {bb.xmin:.2f}..{bb.xmax:.2f}, y {bb.ymin:.1f}..{bb.ymax:.1f}, z {bb.zmin:.2f}..{bb.zmax:.2f} "
+        f"inside the envelope; header face {bb.xmin - p.mount_x:.2f} mm inside the mount face")
+    add(vol(fr.intersect(brd)) < 0.5, f"frame clear of the tool board (overlap {vol(fr.intersect(brd)):.2f} mm3)")
+    add(vol(brd.intersect(pipette(p))) < 0.1 and vol(brd.intersect(pipette(p, push=s["u_blowout"] - p.pad_gap))) < 0.1,
+        "tool board clear of the pipette at rest and at blow-out")
+    add(vol(brd.intersect(switch(p))) < 0.1 and vol(brd.intersect(actuator(p))) < 0.1, "tool board clear of switch and actuator")
+    worst = max(vol(brd.intersect(yoke(p, t))) for t in (-p.sw_trigger, 0.0, s["u_blowout"], s["u_max"]))
+    add(worst < 0.1, f"tool board clear of the rigid yoke over the whole travel (worst {worst:.2f} mm3)")
+    worst = max(vol(brd.intersect(yoke(p, t, eject=True))) for t in (0.0, s["u_max"]))
+    res.append(("ok " if worst < 0.1 else "info", f"eject-variant arm vs tool board: {worst:.1f} mm3 "
+                f"({'clear' if worst < 0.1 else 'collides - the eject variant needs another board place'})"))
     for t in (-p.sw_trigger, 0.0, s["u_blowout"], s["u_max"]):
         for ej in (False, True):
             y = yoke(p, t, eject=ej)
@@ -620,10 +676,10 @@ def main():
         asm.add(pipette(p), name="REF - ONiLAB envelope", color=cq.Color(0.75, 0.75, 0.78, 0.6))
         asm.add(actuator(p), name="BUY - YPF Motors - linear actuator - 20K-2AB-12.7", color=cq.Color(0.3, 0.3, 0.32, 1))
         asm.add(switch(p), name="BUY - Omron - micro switch - D2F-L", color=cq.Color(0.2, 0.2, 0.2, 1))
-        asm.add(identity_pcb(p), name="REF - identity board + 2x5 header", color=cq.Color(0.1, 0.45, 0.2, 1))
+        asm.add(tool_board(p), name="REF - tool board (KiCad)", color=cq.Color(0.1, 0.45, 0.2, 1))
         asm.save(str(OUT / f"{NAME} - assembly{variant}.step"))
     (OUT / "ref").mkdir(exist_ok=True)                     # reference solids for the Inventor assembly
-    for nm, wp in (("REF - ONiLAB envelope", pipette(p)), ("REF - identity board + 2x5 header", identity_pcb(p)),
+    for nm, wp in (("REF - ONiLAB envelope", pipette(p)), ("REF - tool board (KiCad)", tool_board_fused(p)),
                    ("BUY - Omron - micro switch - D2F-L", switch(p))):
         cq.exporters.export(wp, str(OUT / "ref" / f"{nm}.step"))
     report ={"params": asdict(p), "stack": {k: round(v, 2) for k, v in s.items()},

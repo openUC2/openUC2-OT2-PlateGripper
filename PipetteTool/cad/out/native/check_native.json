@@ -1,7 +1,7 @@
 {
  "frame": {
-  "cadquery_mm3": 65339.3,
-  "native_mm3": 65340.7,
+  "cadquery_mm3": 59408.6,
+  "native_mm3": 59410.0,
   "delta_mm3": 1.4,
   "bbox_delta_mm": 0.0,
   "points": 20000,
@@ -77,17 +77,6 @@
    34.3,
    -7.7
   ],
-  "ok": true
- },
- "board": {
-  "cadquery_mm3": 1807.6,
-  "native_mm3": 1807.6,
-  "delta_mm3": -0.0,
-  "bbox_delta_mm": 0.0,
-  "points": 20000,
-  "mismatch_points": 0,
-  "mismatch_mm3": 0.0,
-  "mismatch_region": null,
   "ok": true
  },
  "switch": {

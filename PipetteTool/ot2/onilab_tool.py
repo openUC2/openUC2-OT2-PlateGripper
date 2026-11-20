@@ -12,7 +12,11 @@ from bisect import bisect_left
 EMULATED_MODEL = "p20_single_v2.2"
 ROBOT_STEPS_PER_MM = 3200.0      # GEN2 single plunger axis (model_constants.MOUNT_CONFIG_LOOKUP_TABLE)
 ROBOT_MICROSTEPS = 32            # A5984 driver, microstepping on (M52/M54)
-HOMED_PLUNGER = 19.0             # plunger coordinate after homing (smoothie constants HOMED_POSITION)
+HOMED_PLUNGER = 20.0             # B/C where the home switch trips: SmoothiewareOT homing_position 20; the
+                                 # firmware then backs off 2 to B 18 (HOMED_POSITION 19 is only a cache)
+HOMING_FAST = 25.0               # robot-mm/s G28.2 fast phase (config.default fast_rate) = 2500 full steps/s
+HOMING_RETRACT = 2.0             # robot-mm back-off after the trigger (switch must release within it)
+FREE_MOVE_SPEED = 31.0           # robot-mm/s moves without a speed (to bottom after homing): 3100 full steps/s
 OVERRIDE_RANGE = (-20.0, 30.0)   # allowed top/bottom/blowout/drop (model_constants._MIN_MAX_LOOKUP)
 P20_MAX_VOLUME = 20.0            # liquid_class.max_volume used for plunger speed
 # P20 GEN2 ul/mm table for the default tips (liquid/single_channel/p20/default/2_2.json, key "1"):

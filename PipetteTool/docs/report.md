@@ -1,11 +1,21 @@
 # A 0.1–2.5 µl ONiLAB pipette as a native OT-2 tool
 
-openUC2 · OT-2 lab automation · prototype V0.3 · 1 Nov 2026
+openUC2 · OT-2 lab automation · prototype V0.5 · 20 Nov 2026
 
 Research on the OT-2 pipette interface, prior art, and a printable holder with motor, identity
 electronics and protocol code. Files live in `PipetteTool/` of the openUC2-OT2-PlateGripper
 repository. This page is the markdown version of the shared report (V0.1, 30 Oct), brought up to
 V0.3; engineering details are in the design note [pipette_tool.md](pipette_tool.md).
+
+**New in V0.5 (after the first test on the robot):**
+- The screw holes were right.
+- The robot's plug sits 22.5 mm above the top screws, not 30, and the mount's top block needs a
+  relief. A flat frame face rested on it, so the holes seemed off.
+- New tool board (KiCad, JLCPCB): header, XIAO ESP32-S3, shifters, motor and switch plugs.
+- Homing: the plunger positions were 0.5 mm too deep, and the robot's homing speed is too high
+  for a size-8 motor. Fixes and a bench test are in [homing.md](homing.md).
+- The motor does not reach a GEN2's top (15.7 mm below it). A 19.05 mm-stroke version of the
+  same actuator would also allow tip ejection.
 
 **New in V0.3:**
 - The Inventor model is native and parametric. One parameter part drives every part and both
@@ -158,7 +168,7 @@ step decoding (a switch below blow-out can trigger a XIAO), but it needs USB pow
 firmware and room for a second actuator. **Recommendation: the same YPF 20K with a 19.05 or
 25.4 mm stroke and the eject variant.**
 
-### Checks the model runs (39 ok, 1 info)
+### Checks the model runs (43 ok, 2 info)
 
 - Motor rear 11.7 mm below the estimated top datum; cone end 5 mm below the P20 nozzle.
 - Frame, yokes and actuator inside the GEN2 outline; everything above the shroud line too.

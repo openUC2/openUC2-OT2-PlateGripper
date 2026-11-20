@@ -1,13 +1,13 @@
-"""Native, parametric Inventor model of the OT2-Pipette tool (V0.3): parts and assemblies.
+"""Native, parametric Inventor model of the OT2-Pipette tool (V0.5): parts and assemblies.
 
     uv run --with cadquery python pipette_tool.py                                 # first: build.json
     C:\\Users\\benir\\miniforge3\\envs\\pyinventor\\python.exe build_inventor.py   # then this
     uv run --with cadquery python check_native.py                                 # STEP comparison
 
-1. "OT2-Pipette V0.3 - parameters.ipt": every value of pipette_tool.P plus the stack as Inventor
+1. "OT2-Pipette V0.5 - parameters.ipt": every value of pipette_tool.P plus the stack as Inventor
    expressions (pipette_params.py), exported. The one place to edit the design.
 2. Native parts that link it (Parameters > Link): frame, yoke, yoke eject variant, spring pad,
-   tip stripper, the pipette envelope, identity board and switch placeholders. Every sketch
+   tip stripper, the pipette envelope and the switch placeholder. Every sketch
    dimension, plane offset and extent is an expression over the linked names; named work
    planes / axes in the frame carry the assembly.
 3. Flex test: 15 values changed in the parameter part, every part updated and checked, reverted.
@@ -27,7 +27,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import pipette_params  # noqa: E402
-from cadlib.inventor_helpers import CadNew, close_if_open, find_open, matrix, safe, session, tag  # noqa: E402
+from cadlib.inventor_helpers import (CadNew, close_if_open, find_open, import_step, matrix, safe,  # noqa: E402
+                                     session, tag)
 from cadlib.native_part import (NativePart, export_step, kCut, kJoin, kSym,  # noqa: E402
                                 write_parameter_part)
 
@@ -35,7 +36,7 @@ OUT = HERE / "out"
 NATIVE = OUT / "native"
 REPO = HERE.parents[1]
 INV = HERE.parent / "INVENTOR"
-NAME = "OT2-Pipette V0.3"
+NAME = "OT2-Pipette V0.5"
 YPF = "BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors"
 BAR_REF = REPO / "INVENTOR" / "00_OT-2 Reference_Pipettte.ipt"
 ADAPTER = REPO / "INVENTOR" / "OT2-Gripper V1-1 - OT2-interface adapter.ipt"
@@ -51,14 +52,13 @@ FILES = {
     "spring pad": INV / f"{NAME} - spring pad.ipt",
     "tip stripper": INV / f"{NAME} - tip stripper.ipt",
     "envelope": INV / f"REF - {NAME} - ONiLAB envelope.ipt",
-    "board": INV / f"REF - {NAME} - identity board + 2x5 header.ipt",
+    "tool board": INV / f"REF - {NAME} - tool board (KiCad).ipt",
     "switch": INV / f"BUY - Omron - micro switch - D2F-L - {NAME} placeholder.ipt",
 }
 CQ_STEP = {   # CadQuery export each native part is compared with (check_native.py)
     "frame": OUT / f"{NAME} - frame.step", "yoke": OUT / f"{NAME} - yoke.step",
     "yoke eject": OUT / f"{NAME} - yoke eject variant.step", "spring pad": OUT / f"{NAME} - spring pad.step",
     "tip stripper": OUT / f"{NAME} - tip stripper.step", "envelope": OUT / "ref" / "REF - ONiLAB envelope.step",
-    "board": OUT / "ref" / "REF - identity board + 2x5 header.step",
     "switch": OUT / "ref" / "BUY - Omron - micro switch - D2F-L.step",
 }
 DESC = {
@@ -68,12 +68,11 @@ DESC = {
     "spring pad": "printed spring pad, eject variant (2 M2 pins in the skirt slots)",
     "tip stripper": "printed deck-slot tip stripper (SBS footprint, 3 entry holes + slots)",
     "envelope": "ONiLAB 0.1-2.5 ul envelope: Dev-Core body (hook cut), photo lower part, ejector button",
-    "board": "identity board placeholder: perfboard with the shrouded 2x5 header through the wall",
     "switch": "home switch placeholder (Omron D2F-L class body + lever)",
 }
 COLOURS = {"frame": ["Light Steel Blue"], "tip stripper": ["Light Steel Blue"], "yoke": ["Green", "Smooth - Green"],
            "yoke eject": ["Green", "Smooth - Green"], "spring pad": ["Yellow", "Smooth - Yellow", "Orange"],
-           "envelope": ["Clear", "Glass - Clear", "Glass"], "board": ["Green - Dark", "Dark Green", "Green"],
+           "envelope": ["Clear", "Glass - Clear", "Glass"], "tool board": ["Green - Dark", "Dark Green", "Green"],
            "switch": ["Black", "Smooth - Black"]}
 FLEX = {"datum_y": 3.0, "body_len": 2.0, "body_r": 0.2, "nose_r": 0.3, "knob_hole_d": 0.6, "wall": 0.5,
         "clr": 0.1, "mot_len": 2.0, "hdr_y": 3.0, "eject_win_d": 0.5, "yoke_d": 1.0, "arm_r": 0.5,
@@ -237,6 +236,9 @@ def frame(part):
         s = part.sketch_z(z0, nm)
         part.polygon(s, tri, nm)
         part.extrude_toward(s, "gusset_t", kJoin, nm, "z", True)
+    s = part.sketch_x(f"wall_x1 - {o}", "rib")
+    rect(part, s, "relief_y0", "shelf_y0", "rib_z0", "rib_z1", "rib")
+    part.extrude_toward(s, f"rib_x1 - wall_x1 + {o}", kJoin, "rib behind the top-block relief", "x", True)
     # pipette: body clearance from below through wall and sleeve, knob hole in the ledge
     s = part.sketch_y("body_bottom - body_cut_below", "body clearance outline")
     body_loop(part, s, "clr")
@@ -284,14 +286,30 @@ def frame(part):
     for k, (x, z) in enumerate(sq, 1):
         part.circle(s, x, z, "driver_d", f"channel {k}")
     part.extrude_toward(s, f"mot_front - shelf_t - body_top + 2 * {o}", kCut, "screwdriver channels", "y", True)
-    # identity board, switch
+    # robot plug: pocket for its holder, window for the board's right-angle header; top-block relief
+    s = part.sketch_x(f"mount_x - {o}", "plug pocket")
+    rect(part, s, "hdr_y - plug_pocket_l / 2", "hdr_y + plug_pocket_l / 2", "hdr_z - plug_pocket_w / 2",
+         "hdr_z + plug_pocket_w / 2", "plug pocket")
+    part.extrude_toward(s, f"plug_pocket_d + {o}", kCut, "pocket for the robot's plug holder", "x", True)
     s = part.sketch_x(f"mount_x - {o}", "header window")
     rect(part, s, "hdr_y - hdr_l / 2", "hdr_y + hdr_l / 2", "hdr_z - hdr_w / 2", "hdr_z + hdr_w / 2", "header window")
     part.extrude_toward(s, f"wall_x1 - mount_x + 2 * {o}", kCut, "2x5 header window", "x", True)
-    s = part.sketch_x(f"wall_x1 + {o}", "board screw holes")
-    for k, y in enumerate(("hdr_y - hdr_l / 2 - pcb_hole_off", "hdr_y + hdr_l / 2 + pcb_hole_off"), 1):
-        part.circle(s, y, "hdr_z", "pcb_hole_d", f"board hole {k}")
-    part.extrude_toward(s, f"hole_depth + {o}", kCut, "identity board screw holes", "x", False)
+    s = part.sketch_x(f"mount_x - {o}", "top-block relief")
+    rect(part, s, "relief_y0", "relief_y1", "relief_z0", f"env_z + {o}", "relief")
+    part.extrude_toward(s, f"relief_d + {o}", kCut, "relief for the mount's top block", "x", True)
+    # tool board: room for the soldered XIAO pins behind it, two tabs under the shelf with M2 pilot holes
+    s = part.sketch_z("brd_z_front", "XIAO pin clearance")
+    rect(part, s, "brd_x_ref - 22 mm", f"brd_x_ref + {o}", "brd_xiao_y0", "brd_xiao_y1", "pin clearance")
+    part.extrude_toward(s, "brd_back_clr", kCut, "XIAO pin clearance", "z", True)
+    s = part.sketch_z("brd_z_front", "board tabs")
+    for k in (1, 2):
+        rect(part, s, f"brd_hole_x{k} - brd_tab_w / 2", f"brd_hole_x{k} + brd_tab_w / 2", "brd_hole_y - brd_tab_below",
+             "shelf_y0 + 0.5 mm", f"board tab {k}")
+    part.extrude_toward(s, "env_z - brd_z_front", kJoin, "board tabs", "z", True)
+    s = part.sketch_z(f"brd_z_front - {o}", "board screw holes")
+    for k in (1, 2):
+        part.circle(s, f"brd_hole_x{k}", "brd_hole_y", "brd_pilot_d", f"board hole {k}")
+    part.extrude_toward(s, f"env_z - brd_z_front + 2 * {o}", kCut, "tool board M2 holes", "z", True)
     s = part.sketch_x(f"wall_x1 + {o}", "switch screw holes")
     for k, z in enumerate(("sw_z0 + (sw_l - sw_pitch) / 2", "sw_z0 + (sw_l + sw_pitch) / 2"), 1):
         part.circle(s, "sw_y0 + sw_h - sw_hole_down", z, "sw_pilot_d", f"switch hole {k}")
@@ -416,16 +434,6 @@ def envelope(part):
     part.extrude_toward(s, "ej_h", kJoin, "ejector button", "y", True)
 
 
-def board(part):
-    s = part.sketch_x("wall_x1", "board")
-    rect(part, s, "pcb_y0", "hdr_y + hdr_l / 2 + pcb_margin", "hdr_z - pcb_hw", "pcb_z1", "board")
-    part.extrude_toward(s, "pcb_t", kJoin, "perfboard", "x", True)
-    s = part.sketch_x("mount_x + hdr_in", "header")
-    rect(part, s, "hdr_y - hdr_body_l / 2", "hdr_y + hdr_body_l / 2", "hdr_z - hdr_body_w / 2",
-         "hdr_z + hdr_body_w / 2", "header")
-    part.extrude_toward(s, "wall_x1 - mount_x - hdr_in", kJoin, "2x5 shrouded header", "x", True)
-
-
 def switch(part):
     s = part.sketch_x("wall_x1", "switch body")
     rect(part, s, "sw_y0", "sw_y0 + sw_h", "sw_z0", "sw_z0 + sw_l", "body")
@@ -436,7 +444,7 @@ def switch(part):
 
 
 BUILDERS = {"frame": frame, "yoke": yoke, "yoke eject": yoke_eject, "spring pad": spring_pad,
-            "tip stripper": tip_stripper, "envelope": envelope, "board": board, "switch": switch}
+            "tip stripper": tip_stripper, "envelope": envelope, "switch": switch}
 
 
 def build_parts(app, ps) -> dict:
@@ -446,7 +454,7 @@ def build_parts(app, ps) -> dict:
         try:
             fn(part)
             part.set_appearance(COLOURS[key])
-            if key in ("envelope", "board"):
+            if key == "envelope":
                 part.cd.BOMStructure = 51972                   # reference
             rep = part.report()
             part.save(FILES[key], step=False)
@@ -629,15 +637,18 @@ class Asm:
         return [safe(lambda: d.FullFileName) for d in self.doc.File.ReferencedFileDescriptors if d.ReferenceMissing]
 
 
-PAIRS = [("frame", "pipette envelope"), ("frame", "actuator"), ("frame", "home switch"), ("frame", "identity board"),
+PAIRS = [("frame", "pipette envelope"), ("frame", "actuator"), ("frame", "home switch"), ("frame", "tool board"),
+         ("tool board", "pipette envelope"), ("tool board", "actuator"), ("tool board", "home switch"),
+         ("yoke", "tool board"), ("yoke eject", "tool board"),
          ("frame", "insert 1"), ("frame", "insert 2"), ("frame", "insert 3"), ("frame", "OT-2 mount bar (reference model)"),
          ("yoke", "actuator"), ("yoke", "pipette envelope"), ("yoke", "frame"), ("yoke", "home switch"),
          ("yoke eject", "actuator"), ("yoke eject", "pipette envelope"), ("yoke eject", "frame"),
          ("yoke eject", "home switch"), ("spring pad", "yoke eject"), ("spring pad", "pipette envelope"),
          ("actuator", "OT-2 mount bar (reference model)"), ("pipette envelope", "OT-2 mount bar (reference model)")]
-MOVING = [("yoke", "frame"), ("yoke", "home switch"), ("yoke", "actuator"), ("yoke eject", "frame"),
+MOVING = [("yoke", "frame"), ("yoke", "home switch"), ("yoke", "actuator"), ("yoke", "tool board"), ("yoke eject", "frame"),
           ("yoke eject", "home switch"), ("yoke eject", "actuator"), ("spring pad", "frame"), ("spring pad", "yoke eject")]
 KNOWN = {("frame", f"insert {k}"): "heat-set insert knurl in its 4.1 mm hole (by design)" for k in (1, 2, 3)}
+KNOWN[("yoke eject", "tool board")] = "eject-variant arm runs through the board's place (needs another board place)"
 
 
 def build_assembly(app, ps, path, eject) -> dict:
@@ -667,9 +678,11 @@ def build_assembly(app, ps, path, eject) -> dict:
         a.tie("actuator", 1, a.frame_feature("plane", "WP motor seat"))
         a.tie("actuator", 2, a.frame_feature("plane", "WP pipette z"))
         a.tie("actuator", 3, a.frame_feature("plane", "WP pipette x"))
-        for role, key in (("home switch", "switch"), ("identity board", "board")):
-            a.add(role, FILES[key], (0, 0, 0), I)
-            a.planes(role)
+        a.add("home switch", FILES["switch"], (0, 0, 0), I)
+        a.planes("home switch")
+        # KiCad board, exported by pipette_tool.py already in the tool frame
+        a.add("tool board", FILES["tool board"], (0, 0, 0), I)
+        a.planes("tool board")
         # Ruthex part: axis +y from the lead-in (y = 0) to the flush end (y = insert_len)
         ins = ((ps.ins_top_y, ps.ins_z), (ps.ins_top_y, -ps.ins_z), (ps.ins_bot_y, -ps.ins_z))
         for k, (y, zz) in enumerate(ins, 1):
@@ -740,6 +753,18 @@ def main():
         if bad:
             raise SystemExit("fix the parameter names first")
         report["parts"] = build_parts(app, ps)
+        board = import_step(app, OUT / "ref" / "REF - tool board (KiCad).step", FILES["tool board"], force=True)
+        if board is None or board.suffix != ".ipt":
+            raise SystemExit(f"tool board import gave {board} - expected a single part")
+        doc = app.Documents.Open(str(board), False)
+        try:
+            props = doc.PropertySets.Item("Design Tracking Properties")
+            props.Item("Part Number").Value = board.stem
+            props.Item("Description").Value = ("OT2-Pipette tool board (KiCad 10, electronics/pcb), XIAO ESP32-S3 on its pins; "
+                                               "imported from KiCad - edit it there")
+            doc.Save()
+        finally:
+            doc.Close(True)
         print("flex test")
         report["flex"] = flex(app, ps)
         for k, r in report["flex"]["parts"].items():

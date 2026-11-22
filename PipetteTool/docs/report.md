@@ -1,11 +1,22 @@
 # A 0.1–2.5 µl ONiLAB pipette as a native OT-2 tool
 
-openUC2 · OT-2 lab automation · prototype V0.5 · 20 Nov 2026
+openUC2 · OT-2 lab automation · prototype V0.6 · 20 Nov 2026
 
 Research on the OT-2 pipette interface, prior art, and a printable holder with motor, identity
 electronics and protocol code. Files live in `PipetteTool/` of the openUC2-OT2-PlateGripper
 repository. This page is the markdown version of the shared report (V0.1, 30 Oct), brought up to
 V0.3; engineering details are in the design note [pipette_tool.md](pipette_tool.md).
+
+**New in V0.6 (tip ejection):**
+- V0.5 could not eject tips: the eject arm ran through the tool board, the 12.7 mm stroke is
+  too short, and the old spring pad would have hit the plunger knob after 3 of its 8 mm.
+- The pipette is turned 180°, so the ejector faces the robot rear, where a GEN2 reaches 7 mm past
+  the mount bar. The tool board keeps the front.
+- New eject variant: spring pad on two pins with two springs, a rear arm on a 4 mm steel guide
+  rod (no tilt on the actuator), a push post with a set screw over the ejector button. It needs
+  the 19.05 mm-stroke YPF actuator.
+- A printed seat under the pipette body takes the plunger and eject forces instead of two grub
+  screws.
 
 **New in V0.5 (after the first test on the robot):**
 - The screw holes were right.

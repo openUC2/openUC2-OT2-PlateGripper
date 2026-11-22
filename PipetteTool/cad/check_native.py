@@ -22,15 +22,17 @@ from OCP.TopAbs import TopAbs_IN
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "out"
 NATIVE = OUT / "native"
-NAME = "OT2-Pipette V0.5"
+NAME = "OT2-Pipette V0.6"
 PAIRS = {
     "frame": (f"{NAME} - frame.step", f"{NAME} - frame.stp"),
+    "seat": (f"{NAME} - pipette seat.step", f"{NAME} - pipette seat.stp"),
     "yoke": (f"{NAME} - yoke.step", f"{NAME} - yoke.stp"),
     "yoke eject": (f"{NAME} - yoke eject variant.step", f"{NAME} - yoke eject variant.stp"),
     "spring pad": (f"{NAME} - spring pad.step", f"{NAME} - spring pad.stp"),
     "tip stripper": (f"{NAME} - tip stripper.step", f"{NAME} - tip stripper.stp"),
     "envelope": ("ref/REF - ONiLAB envelope.step", f"REF - {NAME} - ONiLAB envelope.stp"),
     "switch": ("ref/BUY - Omron - micro switch - D2F-L.step", f"BUY - Omron - micro switch - D2F-L - {NAME} placeholder.stp"),
+    "rod": ("ref/BUY - steel rod 4 h8 x 75.step", f"BUY - steel rod - 4 h8 x 75 - {NAME} placeholder.stp"),
 }
 TOL_REL = 0.005          # 0.5 % of the part volume
 TOL_ABS = 5.0            # mm3

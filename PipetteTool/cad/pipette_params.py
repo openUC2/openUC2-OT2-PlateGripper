@@ -23,11 +23,11 @@ from cadlib.params import D, P, ParamSet  # noqa: E402
 RENAME = {"s1": "stroke1", "s2": "stroke2"}          # names Inventor would read as units or that clash
 TUPLES = {
     "inserts": None,                                   # special: (top y, +-z) pair and the bottom one
-    "disp_y": ("disp_y0", "disp_y1"),
     "grub_y": ("grub_y1", "grub_y2"),
     "conn_y": ("conn_y0", "conn_y1"),
     "brd_hole_x": ("brd_hole_x1", "brd_hole_x2"),
     "brd_xiao_y": ("brd_xiao_y0", "brd_xiao_y1"),
+    "seat_screw_z": ("seat_screw_z1", "seat_screw_z2"),
 }
 # stack() key -> (Inventor name, expression); the order is the evaluation order
 DERIVED = [
@@ -51,21 +51,26 @@ DERIVED = [
     ("u_eject0", "u_eject0", "u_blowout + eject_gap", "eject screw touches the ejector button"),
     ("u_drop", "u_drop", "u_eject0 + eject_stroke + eject_over", "travel that releases the tip"),
     ("stroke_for_eject", "stroke_for_eject", "u_drop + home_margin + end_margin", "actuator stroke for plunger ejection"),
+    ("u_max_ej", "u_max_ej", "mot_stroke_ej - home_margin - end_margin", "eject variant: usable travel (19.05 mm actuator)"),
+    ("mot_rear_ej", "mot_rear_ej", "mot_front + mot_len_ej", "eject variant: actuator rear"),
+    ("headroom_ej", "headroom_ej", "datum_y - mot_rear_ej", "eject variant: actuator rear below the GEN2 top datum"),
     ("shelf_x1", "shelf_x1", "min(pip_x + mot_sq / 2 + shelf_side; env_x1 - env_margin)", "shelf +x end"),
     ("gusset_h", "gusset_h", "shelf_x1 - wall_x1", "gusset height below the shelf"),
     ("sw_y0", "sw_y0", "top_y + lever_clear + lever_drop", "switch body bottom"),
     ("pad_face", "pad_face", "top_y - yoke_total", "pad face (rigid yoke) / relaxed spring pad face"),
-    ("skirt_y0", "skirt_y0", "pad_face + nose_out", "eject yoke: skirt bottom"),
-    ("arm_y0", "arm_y0", "skirt_y0 + arm_y", "eject yoke: arm bar bottom"),
-    ("slot_y1", "slot_y1", "skirt_y0 + pin_y + eject_stroke + eject_over + slot_end", "eject yoke: pin slot top"),
-    ("eject_tip_y", "eject_tip_y", "ej_top + u_eject0", "adjust-screw tip at 'top'"),
-    ("arm_boss_y", "arm_boss_y", "eject_tip_y + screw_out", "adjust-screw boss bottom"),
+    ("spring_gap", "spring_gap", "top_y - disc_h - pad_face - pad_t", "eject yoke: disc bottom -> pad top, relaxed"),
+    ("arm_y1", "arm_y1", "top_y - arm_top", "eject yoke: arm block top"),
+    ("eject_tip_y", "eject_tip_y", "ej_top + u_eject0", "set-screw tip at 'top'"),
+    ("arm_boss_y", "arm_boss_y", "eject_tip_y + screw_out", "push post bottom"),
+    ("rod_y0", "rod_y0", "mot_front - rod_len", "guide rod bottom"),
 ]
 EXTRA = [   # convenience values used by several parts
     D("wall_out", "clr + wall", "mm", "sleeve outline offset from the body outline"),
     D("knob_y0", "knob_top - knob_h", "mm", "knob bottom at rest"),
     D("brd_z_front", "brd_z_back + brd_t", "mm", "tool board face toward +z (tabs)"),
     D("shelf_y0", "mot_front - shelf_t", "mm", "underside of the motor shelf"),
+    D("post_z", "pip_z - (ej_d0 + ej_d1) / 2", "mm", "eject yoke: push post axis over the ejector button"),
+    D("arm_y0", "arm_y1 - arm_h", "mm", "eject yoke: arm block bottom"),
     D("st_x2", "st_x1 + st_pitch", "mm", "stripper entry hole 2"),
     D("st_x3", "st_x1 + 2 * st_pitch", "mm", "stripper entry hole 3"),
 ]

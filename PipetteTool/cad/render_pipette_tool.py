@@ -54,7 +54,7 @@ def draw(ax, items, env=None):
 
 
 def envelope_edges(p, y0, y1):
-    x0, x1, z0, z1 = p.mount_x, p.env_x1, -p.env_z, p.env_z
+    x0, x1, z0, z1 = p.mount_x, p.env_x1, -p.env_zr, p.env_z
     c = [(x0, z0), (x1, z0), (x1, z1), (x0, z1)]
     e = []
     for i in range(4):
@@ -97,12 +97,12 @@ def main():
     s = t.stack(p)
     adapter = cq.importers.importStep(str(t.REF / "OT2-interface-adapter.stp"))
     act, sw, pcb, pip = t.actuator(p), t.switch(p), t.tool_board(p), t.pipette(p)
-    items = [(parts["frame"], C["frame"], 1.0), (parts["yoke"], C["yoke"], 1.0), (act, C["act"], 1.0),
+    items = [(parts["frame"], C["frame"], 1.0), (parts["seat"], C["frame"], 1.0), (parts["yoke"], C["yoke"], 1.0), (act, C["act"], 1.0),
              (sw, C["sw"], 1.0), (pcb, C["pcb"], 1.0), (pip, C["pip"], 0.55)]
     env = envelope_edges(p, s["shroud_y"], p.datum_y)
 
     tiles = []
-    for az, el, title in [(-35, 15, "inner side"), (215, 15, "mount face"), (55, 20, "front (ejector side)"), (0, 0, "side")]:
+    for az, el, title in [(-35, 15, "inner side"), (215, 15, "mount face"), (-150, 20, "rear (ejector side)"), (0, 0, "side")]:
         fig = plt.figure(figsize=(3.2, 11))
         ax = fig.add_axes([-0.6, -0.02, 2.2, 1.0], projection="3d")
         draw(ax, items, env)
@@ -115,43 +115,48 @@ def main():
         tmp.unlink()
     plt.imsave(DOCS / "pipette_tool_views.png", np.hstack(tiles))
 
-    # head close-up: eject variant (arm + spring pad) and the gripper adapter as a ghost
+    # head close-up: eject variant (arm + spring pad + guide rod) and the gripper adapter as a ghost
     crop = t.box(-20, 40, s["body_top"] - 25, 200, -30, 30)
+    act_ej = t.actuator(p, length=p.mot_len_ej)
     fig = plt.figure(figsize=(13, 7.5))
-    for k, (az, el) in enumerate([(-30, 12), (-105, 12)]):
+    for k, (az, el) in enumerate([(-150, 12), (-60, 12)]):
         ax = fig.add_subplot(1, 2, k + 1, projection="3d")
         draw(ax, [(parts["frame"].intersect(crop), C["frame"], 1.0), (parts["yoke_eject"], C["yoke"], 1.0),
-                  (parts["pad"], C["pad"], 1.0), (act, C["act"], 1.0), (sw, C["sw"], 1.0), (pcb, C["pcb"], 1.0),
+                  (parts["pad"], C["pad"], 1.0), (t.guide_rod(p), (0.75, 0.75, 0.78), 1.0), (act_ej, C["act"], 1.0),
+                  (sw, C["sw"], 1.0), (pcb, C["pcb"], 1.0),
                   (adapter, (0.95, 0.4, 0.4), 0.15), (pip.intersect(crop), C["pip"], 0.5)])
         ax.view_init(elev=el, azim=az)
-    fig.suptitle("Head, eject variant: YPF 20K actuator above the plunger button, yoke with spring pad (orange) and "
-                 "ejector arm, switch, identity board; gripper adapter as red ghost", fontsize=10)
+    fig.suptitle("Head, eject variant (V0.6): 19.05 mm YPF actuator, yoke with spring pad (orange) on two pins, rear arm "
+                 "on the 4 mm guide rod, push post over the ejector button; tool board on the other side; adapter as red ghost",
+                 fontsize=10)
     fig.tight_layout()
     fig.savefig(DOCS / "pipette_tool_head.png", dpi=110, bbox_inches="tight")
     plt.close(fig)
 
     # sections: full height through the axis (plane z = axis), head detail through the arm (plane x = axis)
-    cols = {"frame": "#8cb3e0", "yoke": "#73cc80", "pad": "#ebb840", "actuator": "#47474d", "switch": "#262626",
+    cols = {"frame": "#8cb3e0", "seat": "#8cb3e0", "rod": "#9a9aa0", "yoke": "#73cc80", "pad": "#ebb840", "actuator": "#47474d", "switch": "#262626",
             "pcb": "#1a803f", "pipette": "#c8c8d0"}
     fig, axs = plt.subplots(1, 2, figsize=(12, 13), gridspec_kw={"width_ratios": [1, 1.5]})
-    objs = {"frame": parts["frame"], "yoke": parts["yoke"], "actuator": act, "switch": sw, "pcb": pcb, "pipette": pip}
+    objs = {"frame": parts["frame"], "seat": parts["seat"], "yoke": parts["yoke"], "actuator": act, "switch": sw,
+            "pcb": pcb, "pipette": pip}
     section(axs[0], objs, cols, "z", p.pip_z)
     levels(axs[0], p, s, -24)
     axs[0].axvline(p.mount_x, color="#7f8c8d", lw=0.6)
     axs[0].axvline(p.env_x1, color="#c0392b", lw=0.6, ls="--")
     axs[0].set_xlim(-25, 40); axs[0].set_ylim(s["cone_end"] - 8, p.datum_y + 6)
     axs[0].set_xlabel("x from the mount (mm)"); axs[0].set_title("section through the axis (rigid yoke, at 'top')")
-    objs2 = {"frame": parts["frame"], "yoke": parts["yoke_eject"], "pad": parts["pad"], "actuator": act, "pipette": pip}
+    objs2 = {"frame": parts["frame"], "yoke": parts["yoke_eject"], "pad": parts["pad"], "actuator": act_ej, "pipette": pip,
+             "pcb": pcb}
     section(axs[1], objs2, cols, "x", p.pip_x)
     levels(axs[1], p, s, -19)
     for u, lab in [(0, "top"), (s["u_bottom"], "first stop"), (s["u_blowout"], "blow-out"), (s["u_drop"], "eject end")]:
         axs[1].annotate(f"{lab}: {u:.1f} mm", (p.env_z, s["top"] - u), fontsize=7.5, color="#2c3e50",
                         xytext=(p.env_z + 3, s["top"] - u), arrowprops=dict(arrowstyle="-", lw=0.5))
-    axs[1].axvline(-p.env_z, color="#c0392b", lw=0.6, ls="--")
+    axs[1].axvline(-p.env_zr, color="#c0392b", lw=0.6, ls="--")
     axs[1].axvline(p.env_z, color="#c0392b", lw=0.6, ls="--")
-    axs[1].set_xlim(-22, 40); axs[1].set_ylim(s["body_top"] - 22, p.datum_y + 6)
-    axs[1].set_xlabel("z (mm, ejector side +)")
-    axs[1].set_title(f"head, eject variant: arm screw {s['u_eject0']:.1f} mm above the ejector button", fontsize=10)
+    axs[1].set_xlim(-30, 40); axs[1].set_ylim(s["body_top"] - 22, p.datum_y + 6)
+    axs[1].set_xlabel("z (mm): ejector and guide rod at the rear (-), tool board at the front (+)")
+    axs[1].set_title(f"head, eject variant: set screw {s['u_eject0']:.1f} mm above the ejector button", fontsize=10)
     for ax in axs:
         ax.set_aspect("equal"); ax.grid(alpha=0.25); ax.set_ylabel("y (mm, adapter frame)")
     fig.tight_layout()

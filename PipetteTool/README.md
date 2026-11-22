@@ -1,6 +1,6 @@
 # OT2-Pipette: a precise 0.1–2.5 µl manual pipette as a native Opentrons OT-2 tool
 
-Prototype V0.5. An ONiLAB (DLAB TopPette) 0.1–2.5 µl manual pipette sits in a 3D-printed frame
+Prototype V0.6. An ONiLAB (DLAB TopPette) 0.1–2.5 µl manual pipette sits in a 3D-printed frame
 that bolts to an OT-2 pipette mount like the plate gripper. The robot sees it as a **P20
 Single-Channel GEN2** through a 24C02 EEPROM, or an ESP32-S3 emulating it, on the standard
 ribbon. The robot's own plunger driver moves a YPF Motors 20K-2AB-12.7 linear actuator (size 8,
@@ -11,8 +11,15 @@ V0.5, after the first test on the robot:
 - a tool board (KiCad, JLCPCB) carries the header, the XIAO and the plugs;
 - the plunger positions are fixed and homing is analysed: [docs/homing.md](docs/homing.md).
 
-Inventor: `INVENTOR/OT2-Pipette V0.5.iam` and `- eject variant.iam` are native and parametric.
-Edit the values in `INVENTOR/OT2-Pipette V0.5 - parameters.ipt`, which every part and assembly
+V0.6, tip ejection:
+- the pipette is turned 180°, so its ejector faces the robot rear, where a GEN2 reaches 7 mm past
+  the mount bar; the tool board keeps the front;
+- the eject variant has a new spring pad on two pins, a rear arm on a 4 mm steel guide rod and a
+  push post over the ejector button; it needs the 19.05 mm-stroke YPF actuator;
+- a printed seat under the pipette body carries the plunger and eject forces.
+
+Inventor: `INVENTOR/OT2-Pipette V0.6.iam` and `- eject variant.iam` are native and parametric.
+Edit the values in `INVENTOR/OT2-Pipette V0.6 - parameters.ipt`, which every part and assembly
 links; assembly parameter `travel` moves the plunger stroke. The colleague's V0.4 files are in
 Inventor 2026 format and cannot be opened in 2025 (see the design note).
 

@@ -1,13 +1,13 @@
-"""Native, parametric Inventor model of the OT2-Pipette tool (V0.5): parts and assemblies.
+"""Native, parametric Inventor model of the OT2-Pipette tool (V0.6): parts and assemblies.
 
     uv run --with cadquery python pipette_tool.py                                 # first: build.json
     C:\\Users\\benir\\miniforge3\\envs\\pyinventor\\python.exe build_inventor.py   # then this
     uv run --with cadquery python check_native.py                                 # STEP comparison
 
-1. "OT2-Pipette V0.5 - parameters.ipt": every value of pipette_tool.P plus the stack as Inventor
+1. "OT2-Pipette V0.6 - parameters.ipt": every value of pipette_tool.P plus the stack as Inventor
    expressions (pipette_params.py), exported. The one place to edit the design.
-2. Native parts that link it (Parameters > Link): frame, yoke, yoke eject variant, spring pad,
-   tip stripper, the pipette envelope and the switch placeholder. Every sketch
+2. Native parts that link it (Parameters > Link): frame, pipette seat, yoke, yoke eject variant,
+   spring pad, tip stripper, the pipette envelope, the switch and guide-rod placeholders. Every sketch
    dimension, plane offset and extent is an expression over the linked names; named work
    planes / axes in the frame carry the assembly.
 3. Flex test: 15 values changed in the parameter part, every part updated and checked, reverted.
@@ -36,7 +36,7 @@ OUT = HERE / "out"
 NATIVE = OUT / "native"
 REPO = HERE.parents[1]
 INV = HERE.parent / "INVENTOR"
-NAME = "OT2-Pipette V0.5"
+NAME = "OT2-Pipette V0.6"
 YPF = "BUY - Stepping motor - 20K-2AB-12.7 - YPF Motors"
 BAR_REF = REPO / "INVENTOR" / "00_OT-2 Reference_Pipettte.ipt"
 ADAPTER = REPO / "INVENTOR" / "OT2-Gripper V1-1 - OT2-interface adapter.ipt"
@@ -47,6 +47,7 @@ I = ((1, 0, 0), (0, 1, 0), (0, 0, 1))
 FILES = {
     "params": INV / f"{NAME} - parameters.ipt",
     "frame": INV / f"{NAME} - frame.ipt",
+    "seat": INV / f"{NAME} - pipette seat.ipt",
     "yoke": INV / f"{NAME} - yoke.ipt",
     "yoke eject": INV / f"{NAME} - yoke eject variant.ipt",
     "spring pad": INV / f"{NAME} - spring pad.ipt",
@@ -54,29 +55,34 @@ FILES = {
     "envelope": INV / f"REF - {NAME} - ONiLAB envelope.ipt",
     "tool board": INV / f"REF - {NAME} - tool board (KiCad).ipt",
     "switch": INV / f"BUY - Omron - micro switch - D2F-L - {NAME} placeholder.ipt",
+    "rod": INV / f"BUY - steel rod - 4 h8 x 75 - {NAME} placeholder.ipt",
 }
 CQ_STEP = {   # CadQuery export each native part is compared with (check_native.py)
-    "frame": OUT / f"{NAME} - frame.step", "yoke": OUT / f"{NAME} - yoke.step",
+    "frame": OUT / f"{NAME} - frame.step", "seat": OUT / f"{NAME} - pipette seat.step", "yoke": OUT / f"{NAME} - yoke.step",
     "yoke eject": OUT / f"{NAME} - yoke eject variant.step", "spring pad": OUT / f"{NAME} - spring pad.step",
     "tip stripper": OUT / f"{NAME} - tip stripper.step", "envelope": OUT / "ref" / "REF - ONiLAB envelope.step",
     "switch": OUT / "ref" / "BUY - Omron - micro switch - D2F-L.step",
+    "rod": OUT / "ref" / "BUY - steel rod 4 h8 x 75.step",
 }
 DESC = {
-    "frame": "printed frame: mount wall with 3 M3 inserts, sleeve + ledge, header window, motor shelf (PETG/ASA)",
+    "frame": "printed frame: mount wall with 3 M3 inserts, sleeve + ledge, header window, motor shelf, guide-rod column (PETG/ASA)",
+    "seat": "printed pipette seat: fork under the body bottom, 2 M3 screws into the wall (takes plunger and eject forces)",
     "yoke": "printed yoke on the actuator shaft (M2.5 insert), rigid pad on the plunger knob, switch tab",
-    "yoke eject": "printed yoke, eject variant: skirt for the spring pad, arm with M3 adjust screw over the ejector",
-    "spring pad": "printed spring pad, eject variant (2 M2 pins in the skirt slots)",
+    "yoke eject": "printed yoke, eject variant: 2 M2 pins for the spring pad, rear arm on the 4 mm guide rod, push post with M3 set screw",
+    "spring pad": "printed spring pad, eject variant: plate on the plunger knob, 2 M2 heat-set inserts, 2 springs to the disc",
     "tip stripper": "printed deck-slot tip stripper (SBS footprint, 3 entry holes + slots)",
     "envelope": "ONiLAB 0.1-2.5 ul envelope: Dev-Core body (hook cut), photo lower part, ejector button",
     "switch": "home switch placeholder (Omron D2F-L class body + lever)",
+    "rod": "guide rod placeholder: 4 mm steel rod h8 x 75 (silver steel or a ground shaft), eject variant",
 }
-COLOURS = {"frame": ["Light Steel Blue"], "tip stripper": ["Light Steel Blue"], "yoke": ["Green", "Smooth - Green"],
+COLOURS = {"frame": ["Light Steel Blue"], "seat": ["Light Steel Blue"], "tip stripper": ["Light Steel Blue"],
+           "rod": ["Chrome - Polished", "Steel - Polished", "Chrome", "Steel", "Aluminum"], "yoke": ["Green", "Smooth - Green"],
            "yoke eject": ["Green", "Smooth - Green"], "spring pad": ["Yellow", "Smooth - Yellow", "Orange"],
            "envelope": ["Clear", "Glass - Clear", "Glass"], "tool board": ["Green - Dark", "Dark Green", "Green"],
            "switch": ["Black", "Smooth - Black"]}
 FLEX = {"datum_y": 3.0, "body_len": 2.0, "body_r": 0.2, "nose_r": 0.3, "knob_hole_d": 0.6, "wall": 0.5,
-        "clr": 0.1, "mot_len": 2.0, "hdr_y": 3.0, "eject_win_d": 0.5, "yoke_d": 1.0, "arm_r": 0.5,
-        "sw_z0": -0.5, "ins_z": 0.25, "st_slot_w": 0.3}
+        "clr": 0.1, "mot_len": 2.0, "hdr_y": 3.0, "eject_win_d": 0.5, "yoke_d": 1.0, "arm_h": 1.0, "pin_r": 0.3,
+        "rod_x": 0.2, "seat_t": 0.5, "sw_z0": -0.5, "ins_z": 0.25, "st_slot_w": 0.3}
 
 
 # ----------------------------------------------------------------------------- sketch helpers
@@ -130,15 +136,16 @@ def _end(s, arc, uv):
 
 DZ = "sqrt(body_r * body_r - body_hw * body_hw)"
 NZ = "nose_c + sqrt(nose_r * nose_r - nose_hw * nose_hw)"
-OUTLINE = {"A1": ("pip_x + body_hw", f"pip_z - {DZ}"), "A2": ("pip_x - body_hw", f"pip_z - {DZ}"),
-           "B2": ("pip_x - body_hw", "pip_z + body_flat_d"), "C2": ("pip_x - body_ch_w", "pip_z + body_ch_d"),
-           "N2": ("pip_x - nose_hw", f"pip_z + {NZ}"), "N1": ("pip_x + nose_hw", f"pip_z + {NZ}"),
-           "C1": ("pip_x + body_ch_w", "pip_z + body_ch_d"), "B1": ("pip_x + body_hw", "pip_z + body_flat_d")}
+# D (toward the ejector) points to -z since V0.6 (pipette turned 180 deg): frame z = pip_z - D
+OUTLINE = {"A1": ("pip_x + body_hw", f"pip_z + {DZ}"), "A2": ("pip_x - body_hw", f"pip_z + {DZ}"),
+           "B2": ("pip_x - body_hw", "pip_z - body_flat_d"), "C2": ("pip_x - body_ch_w", "pip_z - body_ch_d"),
+           "N2": ("pip_x - nose_hw", f"pip_z - ({NZ})"), "N1": ("pip_x + nose_hw", f"pip_z - ({NZ})"),
+           "C1": ("pip_x + body_ch_w", "pip_z - body_ch_d"), "B1": ("pip_x + body_hw", "pip_z - body_flat_d")}
 
 
 def body_loop(part, s, grow=None):
-    """ONiLAB body section about the pipette axis on a y-plane sketch: round back (arc r body_r),
-    flats at +-body_hw, chamfers, nose arc (r nose_r about D = nose_c). With `grow` the loop is
+    """ONiLAB body section about the pipette axis on a y-plane sketch: round back (arc r body_r, +z),
+    flats at +-body_hw, chamfers, nose arc (r nose_r about D = nose_c, toward -z). With `grow` the loop is
     offset outward by that expression (an offset dimension) and the body outline becomes
     construction geometry, so the profile is the grown loop."""
     sk = s.sk
@@ -147,7 +154,7 @@ def body_loop(part, s, grow=None):
     r, hw = part.x("body_r"), part.x("body_hw")
     nr, nhw, nc = part.x("nose_r"), part.x("nose_hw"), part.x("nose_c")
     back = _arc(part, s, (ax, az), P["A1"], P["A2"], r * (math.pi - 2 * math.atan2(math.sqrt(r * r - hw * hw), hw)))
-    nose = _arc(part, s, (ax, az + nc), P["N2"], P["N1"],
+    nose = _arc(part, s, (ax, az - nc), P["N2"], P["N1"],
                 nr * (math.pi - 2 * math.atan2(math.sqrt(nr * nr - nhw * nhw), nhw)))
     L = sk.SketchLines
     l1 = L.AddByTwoPoints(_end(s, back, P["A2"]), s.pt(*P["B2"]))
@@ -158,7 +165,7 @@ def body_loop(part, s, grow=None):
     l6 = L.AddByTwoPoints(l5.EndSketchPoint, _end(s, back, P["A1"]))
     pp = part._place_point
     pp(s, back.CenterSketchPoint, "pip_x", "pip_z", "back arc centre")
-    pp(s, nose.CenterSketchPoint, "pip_x", "pip_z + nose_c", "nose arc centre")
+    pp(s, nose.CenterSketchPoint, "pip_x", "pip_z - nose_c", "nose arc centre")
     pp(s, _end(s, back, P["A1"]), *OUTLINE["A1"], "back arc end +x")
     pin_u(part, s, _end(s, back, P["A2"]), OUTLINE["A2"][0], "back arc end -x")
     pp(s, _end(s, nose, P["N1"]), *OUTLINE["N1"], "nose arc end +x")
@@ -219,7 +226,7 @@ def frame(part):
     datums(part)
     o = "cut_over"
     s = part.sketch_x("mount_x", "mount wall")
-    rect(part, s, "plate_y0", "mot_rear", "-env_z", "env_z", "wall")
+    rect(part, s, "body_bottom", "mot_rear", "-env_z", "env_z", "wall")
     part.extrude_toward(s, "wall_x1 - mount_x", kJoin, "mount wall", "x", True)
     top, ez = part.x("mot_rear"), part.x("env_z")
     part.fillet(part.edges_parallel("x", 1.0, lambda x, y, z: abs(y - top) < 0.01 and abs(abs(z) - ez) < 0.01),
@@ -236,6 +243,13 @@ def frame(part):
         s = part.sketch_z(z0, nm)
         part.polygon(s, tri, nm)
         part.extrude_toward(s, "gusset_t", kJoin, nm, "z", True)
+    # guide rod (eject variant): column on the sleeve for its bottom end, boss at the rear of the shelf
+    s = part.sketch_y("col_y0", "rod column")
+    rect(part, s, "rod_x - col_hw", "env_x1 - env_margin", f"-env_zr - {o}", "rod_z + col_front", "rod column")
+    part.extrude_toward(s, "col_y1 - col_y0", kJoin, "guide rod column", "y", True)
+    s = part.sketch_y("shelf_y0", "rod boss")
+    rect(part, s, "rod_x - boss_hw", "env_x1 - env_margin", f"-env_zr - {o}", f"-env_z + {o}", "rod boss")
+    part.extrude_toward(s, "shelf_t", kJoin, "guide rod boss", "y", True)
     s = part.sketch_x(f"wall_x1 - {o}", "rib")
     rect(part, s, "relief_y0", "shelf_y0", "rib_z0", "rib_z1", "rib")
     part.extrude_toward(s, f"rib_x1 - wall_x1 + {o}", kJoin, "rib behind the top-block relief", "x", True)
@@ -247,18 +261,22 @@ def frame(part):
     part.circle(s, "pip_x", "pip_z", "knob_hole_d", "knob hole")
     part.extrude_toward(s, f"ledge_t + 2 * {o}", kCut, "knob hole", "y", True)
     s = part.sketch_y(f"sleeve_y0 - {o}", "ejector slot")
-    rect(part, s, "pip_x - ej_hw - ej_slot_clr", "pip_x + ej_hw + ej_slot_clr", "pip_z + ej_d0 - ej_slot_z",
-         f"env_z + {o}", "ejector slot")
+    rect(part, s, "pip_x - ej_hw - ej_slot_clr", "pip_x + ej_hw + ej_slot_clr", f"-env_zr - {o}",
+         "pip_z - ej_d0 + ej_slot_z", "ejector slot")
     part.extrude_toward(s, f"body_top - sleeve_y0 + {o}", kCut, "ejector button slot", "y", True)
     s = part.sketch_y("body_top - eject_win_h", "eject window")
-    rect(part, s, "pip_x - eject_win_hw", "pip_x + eject_win_hw", "pip_z + eject_win_d", f"env_z + {o}", "eject window")
+    rect(part, s, "pip_x - eject_win_hw", "pip_x + eject_win_hw", f"-env_zr - {o}", "pip_z - eject_win_d", "eject window")
     part.extrude_toward(s, f"eject_win_h + ledge_t + {o}", kCut, "eject window", "y", True)
     s = part.sketch_y(f"body_top - {o}", "ledge relief")
-    rect(part, s, "pip_x - mot_holes / 2", "pip_x + mot_holes / 2", "pip_z", "pip_z + eject_win_d", "ledge relief")
+    rect(part, s, "pip_x - mot_holes / 2", "pip_x + mot_holes / 2", "pip_z - ledge_relief_d", "pip_z", "ledge relief")
     part.extrude_toward(s, f"ledge_t + 2 * {o}", kCut, "ledge relief", "y", True)
-    s = part.sketch_y("body_bottom + disp_y0", "volume window")
-    rect(part, s, f"mount_x - {o}", "pip_x - body_hw", "pip_z - disp_hw", "pip_z + disp_hw", "volume window")
-    part.extrude_toward(s, "disp_y1 - disp_y0", kCut, "volume window", "y", True)
+    s = part.sketch_y("rod_y0 - 0.5 mm", "guide rod hole")
+    part.circle(s, "rod_x", "rod_z", "rod_d", "rod")
+    part.extrude_toward(s, f"mot_front - rod_y0 + 0.5 mm + {o}", kCut, "guide rod hole", "y", True)
+    s = part.sketch_y(f"body_bottom - {o}", "seat insert holes")
+    for k in (1, 2):
+        part.circle(s, "seat_screw_x", f"seat_screw_z{k}", "seat_ins_d", f"seat insert {k}")
+    part.extrude_toward(s, f"seat_ins_h + {o}", kCut, "M3 inserts for the pipette seat", "y", True)
     ins = (("ins_top_y", "ins_z"), ("ins_top_y", "-ins_z"), ("ins_bot_y", "-ins_z"))
     for nm, d, depth in (("insert holes", "insert_d", f"insert_x_end - mount_x + {o}"),
                          ("insert recesses", "insert_cb_d", f"insert_cb_h + {o}")):
@@ -314,10 +332,10 @@ def frame(part):
     for k, z in enumerate(("sw_z0 + (sw_l - sw_pitch) / 2", "sw_z0 + (sw_l + sw_pitch) / 2"), 1):
         part.circle(s, "sw_y0 + sw_h - sw_hole_down", z, "sw_pilot_d", f"switch hole {k}")
     part.extrude_toward(s, f"hole_depth + {o}", kCut, "switch screw holes", "x", False)
-    # trim to the GEN2 outline (the sleeve sticks out at +x and +-z)
-    s = part.sketch_y(f"plate_y0 - {o}", "GEN2 outline trim")
-    rect(part, s, "mount_x - 50 mm", "env_x1 + 50 mm", "-env_z - 50 mm", "env_z + 50 mm", "trim outer")
-    rect(part, s, "mount_x", "env_x1", "-env_z", "env_z", "GEN2 outline")
+    # trim to the GEN2 outline (the sleeve sticks out at +x and -z; a GEN2 reaches env_zr behind the bar)
+    s = part.sketch_y(f"body_bottom - {o}", "GEN2 outline trim")
+    rect(part, s, "mount_x - 50 mm", "env_x1 + 50 mm", "-env_zr - 50 mm", "env_z + 50 mm", "trim outer")
+    rect(part, s, "mount_x", "env_x1", "-env_zr", "env_z", "GEN2 outline")
     part.extrude_through(s, kSym, "trim to the GEN2 outline")
 
 
@@ -345,42 +363,69 @@ def yoke(part):
 
 
 def yoke_eject(part):
+    """Disc with two M2 pins for the spring pad (springs between disc and pad), a block to the
+    rear with a bushing on the guide rod and the push post (M3 set screw) over the ejector button."""
     yoke_common_top(part)
-    s = part.sketch_y("skirt_y0", "skirt")
-    part.circle(s, "pip_x", "pip_z", "yoke_d", "skirt")
-    part.extrude_toward(s, "top_y - disc_h - skirt_y0", kJoin, "skirt", "y", True)
-    s = part.sketch_y("skirt_y0 - cut_over", "skirt bore")
-    part.circle(s, "pip_x", "pip_z", "skirt_id", "bore")
-    part.extrude_toward(s, "top_y - disc_h - skirt_y0 + cut_over", kCut, "skirt bore", "y", True)
-    s = part.sketch_y("skirt_y0 + slot_y0", "pin slots")
-    rect(part, s, "pip_x - slot_half_len", "pip_x + slot_half_len", "pip_z - slot_hw", "pip_z + slot_hw", "pin slots")
-    part.extrude_toward(s, "slot_y1 - skirt_y0 - slot_y0", kCut, "pin slots", "y", True)
-    s = part.sketch_y("arm_y0", "arm")
-    rect(part, s, "pip_x - arm_w / 2", "pip_x + arm_w / 2", "pip_z + skirt_id / 2", "pip_z + arm_r + arm_t / 2", "arm")
-    part.extrude_toward(s, "arm_t", kJoin, "arm", "y", True)
-    s = part.sketch_y("arm_boss_y", "arm drop")
-    rect(part, s, "pip_x - arm_w / 2", "pip_x + arm_w / 2", "pip_z + arm_r - arm_t / 2", "pip_z + arm_r + arm_t / 2",
-         "arm drop")
-    part.extrude_toward(s, "arm_y0 + arm_t - arm_boss_y", kJoin, "arm drop", "y", True)
-    s = part.sketch_y("arm_boss_y", "screw boss")
-    part.circle(s, "pip_x", "pip_z + arm_r", "boss_d", "boss")
-    part.extrude_toward(s, "boss_h", kJoin, "adjust screw boss", "y", True)
-    s = part.sketch_y("arm_boss_y - cut_over", "adjust screw hole")
-    part.circle(s, "pip_x", "pip_z + arm_r", "m3_tap_d", "M3 tap")
-    part.extrude_toward(s, "arm_y0 + arm_t - arm_boss_y + 2 * cut_over", kCut, "M3 adjust screw hole", "y", True)
+    s = part.sketch_y("arm_y0", "arm block")
+    rect(part, s, "arm_x0", "rod_x", "rod_z - bush_od / 2", "pip_z - arm_d0", "arm block")
+    part.extrude_toward(s, "arm_h", kJoin, "arm block", "y", True)
+    s = part.sketch_y("arm_y1 - bush_len", "bushing")
+    part.circle(s, "rod_x", "rod_z", "bush_od", "bushing")
+    part.extrude_toward(s, "bush_len", kJoin, "bushing on the guide rod", "y", True)
+    s = part.sketch_y("arm_boss_y", "push post")
+    part.circle(s, "pip_x", "post_z", "post_d", "post")
+    part.extrude_toward(s, "arm_y0 - arm_boss_y + cut_over", kJoin, "push post", "y", True)
+    s = part.sketch_y("arm_y1 - bush_len - cut_over", "bushing bore")
+    part.circle(s, "rod_x", "rod_z", "rod_d + 2 * bush_clr", "bore")
+    part.extrude_toward(s, "bush_len + 2 * cut_over", kCut, "bushing bore", "y", True)
+    s = part.sketch_y("arm_boss_y - cut_over", "set screw insert")
+    part.circle(s, "pip_x", "post_z", "post_ins_d", "insert")
+    part.extrude_toward(s, "post_ins_h + cut_over", kCut, "M3 insert hole (set screw)", "y", True)
+    s = part.sketch_y("arm_boss_y", "hex key bore")
+    part.circle(s, "pip_x", "post_z", "post_bore_d", "bore")
+    part.extrude_toward(s, "arm_y1 - arm_boss_y + cut_over", kCut, "hex key bore", "y", True)
     yoke_common_tab(part)
+    s = part.sketch_y("top_y - disc_h - cut_over", "pin holes")
+    for k, sg in ((1, "-"), (2, "+")):
+        part.circle(s, f"pip_x {sg} pin_r", "pip_z", "pin_clear_d", f"pin {k}")
+    part.extrude_toward(s, "disc_h + 2 * cut_over", kCut, "M2 pin holes", "y", True)
+    s = part.sketch_y("top_y - pin_cb_h", "pin head counterbores")
+    for k, sg in ((1, "-"), (2, "+")):
+        part.circle(s, f"pip_x {sg} pin_r", "pip_z", "pin_cb_d", f"head {k}")
+    part.extrude_toward(s, "pin_cb_h + cut_over", kCut, "pin head counterbores", "y", True)
 
 
 def spring_pad(part):
-    s = part.sketch_y("pad_face", "nose")
-    part.circle(s, "pip_x", "pip_z", "nose_d", "nose")
-    part.extrude_toward(s, "skirt_y0 + flange_gap - pad_face", kJoin, "nose", "y", True)
-    s = part.sketch_y("skirt_y0 + flange_gap", "flange")
-    part.circle(s, "pip_x", "pip_z", "flange_d", "flange")
-    part.extrude_toward(s, "flange_h", kJoin, "flange", "y", True)
-    s = part.sketch_x("pip_x - slot_half_len", "pin hole")
-    part.circle(s, "skirt_y0 + pin_y", "pip_z", "pin_d", "pin")
-    part.extrude_toward(s, "2 * slot_half_len", kCut, "M2 pin hole", "x", True)
+    s = part.sketch_y("pad_face", "pad plate")
+    rect(part, s, "pip_x - pad_l / 2", "pip_x + pad_l / 2", "pip_z - pad_w / 2", "pip_z + pad_w / 2", "pad plate")
+    part.extrude_toward(s, "pad_t", kJoin, "pad plate", "y", True)
+    s = part.sketch_y("pad_face - cut_over", "insert holes")
+    for k, sg in ((1, "-"), (2, "+")):
+        part.circle(s, f"pip_x {sg} pin_r", "pip_z", "pad_ins_d", f"insert {k}")
+    part.extrude_toward(s, "pad_t + 2 * cut_over", kCut, "M2 insert holes", "y", True)
+
+
+def seat(part):
+    """Fork under the body bottom around the collar, open toward +x, 2 M3 clearance holes."""
+    s = part.sketch_y("body_bottom - seat_t", "seat plate")
+    rect(part, s, "mount_x", "seat_x1", "seat_z0", "seat_z1", "seat plate")
+    part.extrude_toward(s, "seat_t", kJoin, "seat plate", "y", True)
+    s = part.sketch_y("body_bottom - seat_t - cut_over", "collar hole")
+    part.circle(s, "pip_x", "pip_z", "seat_hole_d", "collar hole")
+    part.extrude_toward(s, "seat_t + 2 * cut_over", kCut, "collar hole", "y", True)
+    s = part.sketch_y("body_bottom - seat_t - cut_over", "fork opening")
+    rect(part, s, "pip_x", "seat_x1 + cut_over", "pip_z - seat_hole_d / 2", "pip_z + seat_hole_d / 2", "fork opening")
+    part.extrude_toward(s, "seat_t + 2 * cut_over", kCut, "fork opening toward +x", "y", True)
+    s = part.sketch_y("body_bottom - seat_t - cut_over", "screw holes")
+    for k in (1, 2):
+        part.circle(s, "seat_screw_x", f"seat_screw_z{k}", "seat_screw_d", f"M3 {k}")
+    part.extrude_toward(s, "seat_t + 2 * cut_over", kCut, "2 x M3 clearance holes", "y", True)
+
+
+def guide_rod(part):
+    s = part.sketch_y("rod_y0", "rod")
+    part.circle(s, "rod_x", "rod_z", "rod_d", "rod")
+    part.extrude_toward(s, "rod_len", kJoin, "4 mm steel rod", "y", True)
 
 
 def tip_stripper(part):
@@ -429,8 +474,12 @@ def envelope(part):
     ax = part.axis_y_at("pip_x", "pip_z", "pipette axis")
     f = part.feats.RevolveFeatures.AddFull(s.profile(), ax, kJoin)
     f.Name = "collar, ejector sleeve, tip cone"
+    s = part.sketch_y("body_bottom + nose_top", "nose cut-out")
+    rect(part, s, "pip_x - body_hw - 1 mm", "pip_x + body_hw + 1 mm", "pip_z - nose_c - nose_r - 1 mm", "pip_z - ej_d0",
+         "nose cut-out")
+    part.extrude_toward(s, "body_len - nose_top + cut_over", kCut, "nose ends at nose_top (button cut-out)", "y", True)
     s = part.sketch_y("ej_top - ej_h", "ejector button")
-    rect(part, s, "pip_x - ej_hw", "pip_x + ej_hw", "pip_z + ej_d0", "pip_z + ej_d1", "button")
+    rect(part, s, "pip_x - ej_hw", "pip_x + ej_hw", "pip_z - ej_d1", "pip_z - ej_d0", "button")
     part.extrude_toward(s, "ej_h", kJoin, "ejector button", "y", True)
 
 
@@ -443,8 +492,8 @@ def switch(part):
     part.extrude_toward(s, "lever_x1 - lever_x0", kJoin, "lever", "x", True)
 
 
-BUILDERS = {"frame": frame, "yoke": yoke, "yoke eject": yoke_eject, "spring pad": spring_pad,
-            "tip stripper": tip_stripper, "envelope": envelope, "switch": switch}
+BUILDERS = {"frame": frame, "seat": seat, "yoke": yoke, "yoke eject": yoke_eject, "spring pad": spring_pad,
+            "tip stripper": tip_stripper, "envelope": envelope, "switch": switch, "rod": guide_rod}
 
 
 def build_parts(app, ps) -> dict:
@@ -456,6 +505,8 @@ def build_parts(app, ps) -> dict:
             part.set_appearance(COLOURS[key])
             if key == "envelope":
                 part.cd.BOMStructure = 51972                   # reference
+            if key == "rod":
+                part.cd.BOMStructure = 51973                   # purchased
             rep = part.report()
             part.save(FILES[key], step=False)
             export_step(app, part.doc, NATIVE / f"{FILES[key].stem}.stp")
@@ -638,6 +689,8 @@ class Asm:
 
 
 PAIRS = [("frame", "pipette envelope"), ("frame", "actuator"), ("frame", "home switch"), ("frame", "tool board"),
+         ("frame", "pipette seat"), ("pipette seat", "pipette envelope"), ("frame", "guide rod"), ("yoke eject", "guide rod"),
+         ("spring pad", "tool board"), ("spring pad", "frame"),
          ("tool board", "pipette envelope"), ("tool board", "actuator"), ("tool board", "home switch"),
          ("yoke", "tool board"), ("yoke eject", "tool board"),
          ("frame", "insert 1"), ("frame", "insert 2"), ("frame", "insert 3"), ("frame", "OT-2 mount bar (reference model)"),
@@ -646,9 +699,9 @@ PAIRS = [("frame", "pipette envelope"), ("frame", "actuator"), ("frame", "home s
          ("yoke eject", "home switch"), ("spring pad", "yoke eject"), ("spring pad", "pipette envelope"),
          ("actuator", "OT-2 mount bar (reference model)"), ("pipette envelope", "OT-2 mount bar (reference model)")]
 MOVING = [("yoke", "frame"), ("yoke", "home switch"), ("yoke", "actuator"), ("yoke", "tool board"), ("yoke eject", "frame"),
-          ("yoke eject", "home switch"), ("yoke eject", "actuator"), ("spring pad", "frame"), ("spring pad", "yoke eject")]
+          ("yoke eject", "home switch"), ("yoke eject", "actuator"), ("yoke eject", "tool board"), ("yoke eject", "guide rod"),
+          ("spring pad", "frame"), ("spring pad", "yoke eject"), ("spring pad", "tool board")]
 KNOWN = {("frame", f"insert {k}"): "heat-set insert knurl in its 4.1 mm hole (by design)" for k in (1, 2, 3)}
-KNOWN[("yoke eject", "tool board")] = "eject-variant arm runs through the board's place (needs another board place)"
 
 
 def build_assembly(app, ps, path, eject) -> dict:
@@ -683,6 +736,11 @@ def build_assembly(app, ps, path, eject) -> dict:
         # KiCad board, exported by pipette_tool.py already in the tool frame
         a.add("tool board", FILES["tool board"], (0, 0, 0), I)
         a.planes("tool board")
+        a.add("pipette seat", FILES["seat"], (0, 0, 0), I)
+        a.planes("pipette seat")
+        if eject:
+            a.add("guide rod", FILES["rod"], (0, 0, 0), I)
+            a.planes("guide rod")
         # Ruthex part: axis +y from the lead-in (y = 0) to the flush end (y = insert_len)
         ins = ((ps.ins_top_y, ps.ins_z), (ps.ins_top_y, -ps.ins_z), (ps.ins_bot_y, -ps.ins_z))
         for k, (y, zz) in enumerate(ins, 1):
@@ -696,21 +754,29 @@ def build_assembly(app, ps, path, eject) -> dict:
         a.planes("OT-2 mount bar (reference model)", ("bar_dx", "bar_dy", "bar_dz"))
         a.add("gripper adapter (same frame)", ADAPTER, (0, 0, 0), I, reference=True, visible=False)
         a.planes("gripper adapter (same frame)")
-        # Dev-Core: axis at x -23.34 in its file, body bottom y 0, nose +x -> on the tool axis, nose +z
-        a.add("ONiLAB-Dev-Core (with hook)", DEVCORE, (x, ps.body_bottom, z + 23.34), ((0, 0, 1), (0, 1, 0), (-1, 0, 0)),
+        # Dev-Core: axis at x -23.34 in its file, body bottom y 0, nose +x -> on the tool axis, nose -z (V0.6)
+        a.add("ONiLAB-Dev-Core (with hook)", DEVCORE, (x, ps.body_bottom, z - 23.34), ((0, 0, -1), (0, 1, 0), (1, 0, 0)),
               reference=True, visible=False)
         f = a.occ["frame"]
         fp = [f.CreateGeometryProxy(f.Definition.WorkPlanes.Item(i)) for i in (1, 2, 3)]
-        a.tie("ONiLAB-Dev-Core (with hook)", 1, fp[2], "pip_z + devcore_dz")
-        a.tie("ONiLAB-Dev-Core (with hook)", 2, fp[1], "body_bottom")
-        a.tie("ONiLAB-Dev-Core (with hook)", 3, fp[0], "pip_x")
+        # turned part: its YZ plane mates the frame's XY plane; signs found once and checked below
+        dc = "ONiLAB-Dev-Core (with hook)"
+        a.tie(dc, 1, fp[2], "pip_z - devcore_dz", verify=False)
+        a.tie(dc, 2, fp[1], "-( body_bottom )", verify=False)
+        a.tie(dc, 3, fp[0], "-( pip_x )", verify=False)
+        a.doc.Update()
+        if not a.at_target(dc):
+            a.problems.append(f"{dc}: not at its pose after its three constraints")
         # travel: back to 'top', check, then sweep
         a.up.Item("travel").Expression = "0 mm"
         a.doc.Update()
         yk = "yoke eject" if eject else "yoke"
         checks = a.check(PAIRS, KNOWN, "travel 0")
         sweep = []
-        for expr, val in (("-sw_trigger", -ps.sw_trigger), ("u_blowout", ps.u_blowout), ("u_max", ps.u_max)):
+        sweep_at = ((("-sw_trigger", -ps.sw_trigger), ("u_blowout", ps.u_blowout), ("u_drop", ps.u_drop),
+                     ("u_max_ej", ps.u_max_ej)) if eject else
+                    (("-sw_trigger", -ps.sw_trigger), ("u_blowout", ps.u_blowout), ("u_max", ps.u_max)))
+        for expr, val in sweep_at:
             a.up.Item("travel").Expression = expr
             a.doc.Update()
             got = -a.occ[yk].Transformation.Translation.Y * 10

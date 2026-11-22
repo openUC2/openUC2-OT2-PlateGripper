@@ -34,10 +34,12 @@ P20_UL_PER_MM = [
     (21.3288, 0.0008, 0.7455),
 ]
 
-# --- our actuator: YPF Motors 20K-2AB-12.7 captive, 1 mm lead (same numbers as cad/pipette_tool.py) ---
+# --- our actuator: YPF Motors 20K-2AB captive, 1 mm lead (same numbers as cad/pipette_tool.py) ---
 MOTOR_STEPS_PER_REV = 200        # 1.8 deg
 LEAD_MM = 1.0                    # (Joy-IT NEMA08-04LA of V0.1: 4.0)
-MOTOR_STROKE = 12.7              # mm
+EJECT_BY_PLUNGER = False         # True with the eject variant (V0.6: spring pad + rear arm on the guide rod)
+MOTOR_STROKE = 12.7              # mm, pipetting only (tip stripper)
+MOTOR_STROKE_EJECT = 19.05       # mm, eject variant: ejection needs a stroke >= 18
 HOME_MARGIN = 1.2                # mm, robot 'top' below the retracted hard stop
 END_MARGIN = 0.3                 # mm, never closer to the extended hard stop
 SW_TRIGGER = 0.6                 # mm, the yoke trips the home switch this far above 'top'
@@ -46,8 +48,7 @@ SW_TRIGGER = 0.6                 # mm, the yoke trips the home switch this far a
 PAD_GAP = 0.5        # mm, pad above the plunger button at "top"
 S1 = 5.0             # mm, button travel to the first stop with the volume set to 2.5 ul
 S2 = 3.0             # mm, extra travel from first stop to blow-out stop
-EJECT_BY_PLUNGER = False  # needs an actuator stroke >= 18 mm (eject variant yoke); 12.7 mm -> tip stripper
-EJECT_GAP = 0.5      # mm, from blow-out until the arm screw touches the ejector button
+EJECT_GAP = 0.5      # mm, from blow-out until the push post's set screw touches the ejector button
 EJECT_STROKE = 7.0   # mm, ejector button travel that releases the tip
 EJECT_OVER = 0.5     # mm, extra push at the end of the eject
 UL_PER_MM = 2.5 / S1 # real ul per mm of button travel at the 2.5 ul setting (MEASURE gravimetrically)
@@ -56,7 +57,7 @@ UL_PER_MM = 2.5 / S1 # real ul per mm of button travel at the 2.5 ul setting (ME
 # YPF rating not known yet (MEASURE coil resistance; 20 mm hybrids are typically 0.5 A).
 # P20 GEN2 idle 0.3 A and homing 1.0 A are NOT overridable.
 PLUNGER_CURRENT = 0.5            # run; P20 GEN2 default 1.0
-DROP_TIP_CURRENT = 0.6           # only matters when ejecting by over-travel
+DROP_TIP_CURRENT = 0.7           # only for the short eject move: springs ~21 N + ejection + rod friction (MEASURE)
 DROP_TIP_SPEED = 5.0             # command mm/s
 PICK_UP_CURRENT = 0.15           # Z current while pressing onto a tip (P20 GEN2 default 0.1)
 
@@ -83,7 +84,7 @@ def travel(eject=EJECT_BY_PLUNGER):
     """Real yoke travel (mm below 'top') at bottom / blowout / dropTip, and what the actuator allows."""
     u = {"bottom": PAD_GAP + S1, "blowout": PAD_GAP + S1 + S2}
     u["dropTip"] = u["blowout"] + (EJECT_GAP + EJECT_STROKE + EJECT_OVER if eject else 0.0)
-    return u, MOTOR_STROKE - HOME_MARGIN - END_MARGIN
+    return u, (MOTOR_STROKE_EJECT if eject else MOTOR_STROKE) - HOME_MARGIN - END_MARGIN
 
 
 def plunger_positions(lead=LEAD_MM):

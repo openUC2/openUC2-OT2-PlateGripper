@@ -1,4 +1,4 @@
-# OT2-Pipette V0.5 — ONiLAB 0.1–2.5 µl pipette as a native OT-2 tool
+# OT2-Pipette V0.6 — ONiLAB 0.1–2.5 µl pipette as a native OT-2 tool
 
 Design note: what was built, the decisions, the numbers and where they come from, the checks
 and the open points. The shareable overview is [report.md](report.md).
@@ -27,22 +27,26 @@ and the open points. The shareable overview is [report.md](report.md).
     Integrate it into the adapter.
   - Homing throws errors; the timing is off.
   - Does the motor hit the top limit? Is there a more compact motor with more stroke?
+- **2026-11-20 (V0.6).** With V0.5 the tool cannot eject tips, right? Could the pipette be turned
+  180° so the eject mechanism sits on the other side (there should be room; a side of the GEN2
+  space may be opened)? The eject feature probably needs to be more robust.
 
 ## What was built
 
 | File | What |
 |---|---|
-| `cad/pipette_tool.py` | parametric CadQuery model + 45 checks + exports (`uv run --with cadquery python pipette_tool.py`); every number is a field of `P` |
-| `cad/out/OT2-Pipette V0.5 - frame.step/.stl` | one printed part: mount wall with the 3 inserts, plug pocket + header window, top-block relief, sleeve + ledge, motor shelf with the board tabs; 32.3 × 205.3 × 37.5 mm, 59 cm³ |
-| `cad/out/OT2-Pipette V0.5 - yoke.step/.stl` | rigid yoke on the actuator's M2.5 shaft end (Ruthex insert), pad face 0.5 mm above the plunger button, switch tab |
-| `cad/out/OT2-Pipette V0.5 - yoke eject variant`, `- spring pad` | eject variant: skirt with a spring pad (2 M2 pins in slots) and an arm with an M3 adjust screw over the ejector button |
-| `cad/out/OT2-Pipette V0.5 - tip stripper` + `openuc2_tipstripper_3_slot.json` | deck-slot stripper (slot 4.4 mm for 10 µl tips) and its OT-2 labware definition |
-| `cad/out/OT2-Pipette V0.5 - assembly.step`, `- assembly eject.step` | frame, yoke(s), YPF actuator, switch, tool board, ONiLAB envelope |
+| `cad/pipette_tool.py` | parametric CadQuery model + 50 checks + exports (`uv run --with cadquery python pipette_tool.py`); every number is a field of `P` |
+| `cad/out/OT2-Pipette V0.6 - frame.step/.stl` | one printed part: mount wall with the 3 inserts, plug pocket + header window, top-block relief, sleeve + ledge, motor shelf with the board tabs, guide-rod column and boss at the rear, 2 seat inserts in the wall's bottom; 32.3 × 226.3 × 44.2 mm, 68 cm³ |
+| `cad/out/OT2-Pipette V0.6 - pipette seat.step/.stl` | printed fork under the pipette body (around the collar), 2 × M3 into the wall |
+| `cad/out/OT2-Pipette V0.6 - yoke.step/.stl` | rigid yoke on the actuator's M2.5 shaft end (Ruthex insert), pad face 0.5 mm above the plunger button, switch tab |
+| `cad/out/OT2-Pipette V0.6 - yoke eject variant`, `- spring pad` | eject variant: spring pad on 2 M2 pins with 2 springs; rear arm on the 4 mm guide rod; push post with an M3 set screw over the ejector button |
+| `cad/out/OT2-Pipette V0.6 - tip stripper` + `openuc2_tipstripper_3_slot.json` | deck-slot stripper (slot 4.4 mm for 10 µl tips) and its OT-2 labware definition |
+| `cad/out/OT2-Pipette V0.6 - assembly.step`, `- assembly eject.step` | frame, seat, yoke(s), YPF actuator (12.7; eject: 19.05 estimate), guide rod, switch, tool board, ONiLAB envelope |
 | commits `c8f2271`, `aa6b085`, `9c05ed3`, `6761c79` | V0.1 (Joy-IT); V0.2 (Inventor files imported from STEP); V0.3 (native Inventor); V0.4 (colleague's changes, Inventor 2026) |
 | `cad/ref/YPF-20K-2AB-12.7.stp` | the CAD-new motor, exported from Inventor |
 | `cad/render_pipette_tool.py`, `cad/render_inventor.py` | the figures below (CadQuery; Inventor off-screen render of the native assemblies) |
-| `cad/pipette_params.py` | the Inventor parameter table: the fields of `P` + the stack as expressions (223 parameters); checked against `stack()` |
-| `cad/build_inventor.py` → `INVENTOR/OT2-Pipette V0.5 - parameters.ipt` + 7 native parts + the KiCad board + `OT2-Pipette V0.5.iam`, `- eject variant.iam` | **native, parametric Inventor model** (below) |
+| `cad/pipette_params.py` | the Inventor parameter table: the fields of `P` + the stack as expressions (251 parameters); checked against `stack()` |
+| `cad/build_inventor.py` → `INVENTOR/OT2-Pipette V0.6 - parameters.ipt` + 9 native parts + the KiCad board + `OT2-Pipette V0.6.iam`, `- eject variant.iam` | **native, parametric Inventor model** (below); the V0.5 files stay for comparison |
 | `cad/check_native.py` | native parts vs CadQuery parts (STEP, volume + 20 000-point sampling) |
 | `cad/cadlib/` | Inventor COM helpers (copy of openuc2-frame-opm's, plus linked parameter parts and `min(a; b)`) |
 | `ot2/onilab_tool.py`, `configure_pipette.py`, `example_protocol_onilab.py` | robot numbers (1 mm lead, switch trips at B = 20), settings writer, real-µl protocol (passes `opentrons_simulate` 8.8.2) |
@@ -54,6 +58,92 @@ and the open points. The shareable overview is [report.md](report.md).
 ![views](pipette_tool_views.png)
 ![section](pipette_tool_section.png)
 ![head](pipette_tool_head.png)
+
+## V0.6: tip ejection at the rear
+
+![Inventor, eject variant from the rear](pipette_tool_inventor_eject.png)
+
+**Could V0.5 eject tips? No, for three reasons:**
+- the eject variant's arm ran through the tool board (202 mm³ overlap);
+- ejection needs 16.5 mm of travel below 'top', so an 18 mm stroke; the 12.7 mm actuator gives 11.2;
+- the spring pad could not give way far enough. Its skirt (inside Ø 14.6) would have landed on the
+  plunger knob (Ø 16.6) after 3 mm of the 8 mm it has to give. The checks only went to 11.2 mm,
+  so this slipped through.
+
+Two more weak points under the eject load:
+- the arm pushed the button 16.9 mm off the actuator's axis. That is about 340 N·mm of tilt on
+  the captive shaft (at 20 N), and the shaft has no side-load rating;
+- the pipette was held down only by two grub screws, which also carry the plunger force.
+
+**What V0.6 changes:**
+1. **The pipette is turned 180° about its axis.** Its ejector button now faces the robot rear
+   (−z). A GEN2 reaches 7.1 mm behind the mount bar there (to z −25.84), and the button ends at
+   z −24.96. The tip axis does not move, so the calibration does not change. The volume display
+   now faces +x, away from the mount; the window through the wall is gone.
+2. **The frame grows to the rear,** up to the GEN2 outline (z −25.5): around the sleeve, and for
+   the guide rod. The wall stays within the bar's 37.5 mm. The board keeps the front (+z), so
+   the eject variant and the board now fit together.
+3. **New eject mechanism** (eject variant, needs the 19.05 mm actuator):
+   - **Spring pad:** a plate on the knob that hangs on two M2 × 28 screws through the yoke disc.
+     Two springs sit between disc and plate. There is no skirt any more, so the yoke never meets
+     the knob: 10.95 mm stay between disc and plate at full squeeze, against a spring solid
+     length of 10.2 mm.
+   - **Guide rod:** a block at the rear of the yoke runs on a 4 mm steel rod with a 25 mm long
+     bushing. The rod sits in a column on the sleeve and in a boss at the rear of the motor
+     shelf. It takes the tilt from the off-axis push, so the actuator only pushes along its axis.
+   - **Push post** over the middle of the button, with an M3 set screw in a heat-set insert. A
+     1.5 mm hex key reaches it from above through the post. At 'top' its tip is 9.0 mm above
+     the button.
+4. **Pipette seat:** a printed fork under the body bottom, around the blue collar. It slides in
+   from +x after the pipette and is held by 2 × M3 in inserts in the wall's bottom face (the wall
+   now reaches down to the body bottom). It carries the plunger and eject forces, so the grub
+   screws become optional.
+5. **`yoke_total` 28 → 32 mm** makes room for the plate and springs, so the motor sits 4 mm
+   higher. That leaves 11.7 mm below the GEN2 top with the 12.7 mm motor and 5.3 mm with the
+   19.05 mm one (its length is an estimate).
+6. The rigid yoke (pipetting, tip stripper) is the same apart from a 4 mm longer post. Both
+   variants use the same frame.
+
+**Force at the end of an eject** (MEASURE the first two):
+
+| | N |
+|---|---|
+| two springs: ~6 N preload each, ~0.55 N/mm, 8 mm squeeze | ~21 |
+| ejector button (tip on the cone) | 10–20 (estimate) |
+| guide-rod friction: 16.9 mm × F of tilt taken over the 25 mm bushing; μ 0.25 printed, ~0.12 igus | 3–7 |
+| **total** | **34–48** |
+
+- **Motor current:** the YPF 20K gives ~45 N at 0.5 A, so `ot2/onilab_tool.py` sets
+  `dropTipCurrent` to 0.7 A for the short eject move. A pressed igus or bronze sleeve instead of
+  the printed bushing removes most of the friction.
+- **Spring preload:** it must exceed the blow-out force. Otherwise the pad gives way before
+  blow-out and the set screw reaches the ejector. Measure that force first, then choose the
+  springs.
+
+**Parts for the eject variant:**
+- YPF 20K-2AB-19.05 (ask YPF for a drawing);
+- 4 mm h8 steel rod × 75 mm;
+- 2 × M2 × 28 DIN 912 and 2 × M2 heat-set inserts;
+- 2 compression springs, wire 0.6 mm, OD 6 mm, ~30 mm free length, ~0.55 N/mm;
+- 1 × M3 heat-set insert and 1 × M3 × 6 set screw with a flat point.
+
+Both variants need, for the seat, 2 × M3 × 10 and 2 Ruthex M3 inserts.
+
+**On the robot:** set `EJECT_BY_PLUNGER = True` in `ot2/onilab_tool.py`. That gives dropTip
+−14.2 robot-mm and a stroke of 19.05 mm; then run `configure_pipette.py` again.
+
+**Checks:**
+- CadQuery: 50 ok. The eject yoke clears the board, frame, switch, actuator and rod from −0.6 to
+  17.55 mm. Yokes, pad and pipette clear each other at 0, 8.5, 9.0, 16.5 and 17.55 mm, with the
+  knob and the ejector moved as the yoke leaves them.
+- Inventor: 9 parts healthy and fully parametric; the flex test passes; 33 and 39 constraints, no
+  problems. Interference is 0 mm³ on every pair at travel 0, `u_blowout`, `u_drop` and
+  `u_max_ej`.
+- `check_native.py`: every native part matches CadQuery.
+
+**Rotating instead, without the new mechanism:** the V0.5 arm would also have cleared the board
+after the turn. But the knob problem, the tilt on the actuator and the grub screws would have
+stayed.
 
 ## V0.5: what the printed prototype showed, and what changed
 
@@ -126,7 +216,7 @@ toward the pipette, screwed (2 × M2) to two tabs under the motor shelf. Its hea
 yoke disc. A female socket would add 5–8.5 mm and hit the yoke inside the GEN2 outline. The pads
 take sockets on a bench board.
 
-**Eject variant:** its arm runs through the board's place, so it needs another layout.
+**Eject variant:** in V0.5 its arm ran through the board's place. V0.6 moves the ejector to the rear (above).
 
 ![tool board](../electronics/pcb/out/render_iso.png)
 ![mount face](pipette_tool_inventor_mountface.png)
@@ -158,8 +248,8 @@ but not for plunger ejection (≥ 18 mm).
 | Nanotec LGA201S06-A-TDBA-019 | 19.05 | ~64 | buy today (~$152), 16 mm hole square: new seat |
 | Non-captive size 8, 1 mm lead, coaxial | ~20 | ~56–61 | no captive sleeve; anti-rotation in the yoke |
 
-Avoid can-stacks: under 30 N, and they stall at the drop-tip speed. With ~15 mm under the GEN2 top,
-a 19.05 mm captive (+6 mm) fits. A 25.4 mm one would need the stack lowered or a frame that
+Avoid can-stacks: under 30 N, and they stall at the drop-tip speed. A 19.05 mm captive (+6 mm)
+fits: V0.6 leaves 5.3 mm under the GEN2 top with it, and the eject variant is drawn for it. A 25.4 mm one would need the stack lowered or a frame that
 grows past the GEN2 top.
 
 ### The colleague's V0.4 is in Inventor 2026
@@ -177,19 +267,19 @@ widened frame and the moved switch are not yet in it. To merge them:
 The edited V0.3 frame no longer opens in 2025, so `OT2-Pipette V0.3.iam` does not either. The V0.5
 files are new and do not replace it.
 
-## The native Inventor model (V0.3, rebuilt as V0.5)
+## The native Inventor model (V0.3, rebuilt as V0.6)
 
-![Inventor, eject variant](pipette_tool_inventor_eject.png)
+![Inventor](pipette_tool_inventor.png)
 
-- **One place to edit:** `INVENTOR/OT2-Pipette V0.3 - parameters.ipt` holds all 208 values as
+- **One place to edit:** `INVENTOR/OT2-Pipette V0.6 - parameters.ipt` holds all 251 values as
   exported user parameters, with comments. That is every field of `P` plus the stack as
   expressions (`body_top = body_bottom + body_len`, `mot_front = retracted + shaft_out`,
   `shelf_x1 = min(...; ...)`, ...). Every part and both assemblies **link** it (Parameters →
   Link): change `datum_y` there, update the assembly, and everything moves.
 - **Parts are real features.** Every sketch dimension, work-plane offset and extent is an
-  expression over those names, so 0 dimensions are fixed numbers. The parts are frame, rigid
-  yoke, eject yoke, spring pad, tip stripper, ONiLAB envelope, identity board and switch
-  placeholders; their names say what they are, e.g. "sleeve and ledge", "body clearance",
+  expression over those names, so 0 dimensions are fixed numbers. The parts are frame, pipette
+  seat, rigid yoke, eject yoke, spring pad, tip stripper, ONiLAB envelope, and the switch and
+  guide-rod placeholders; their names say what they are, e.g. "sleeve and ledge", "body clearance",
   "ejector button slot", "ledge relief". The pipette outline is a real arc-and-line sketch. The
   sleeve and the clearance cut are offsets of it, driven by `wall_out` (= `clr + wall`) and `clr`.
 - **The assemblies are constrained, not placed.** The frame is grounded. Its named work
@@ -201,13 +291,13 @@ files are new and do not replace it.
   The OT-2 reference model, gripper adapter and Dev-Core keep their offsets as assembly
   parameters. **Assembly parameter `travel`** (real mm below the robot's 'top') drives the yoke,
   and `min(travel; u_blowout)` drives the spring pad. Constraints → Drive on it shows the stroke.
-- **Flex test** (every build): 15 values changed at once in the parameter part, including
+- **Flex test** (every build): 18 values changed at once in the parameter part, including
   `datum_y`, `body_len`, `body_r`, `nose_r`, `knob_hole_d`, `wall`, `clr`, `mot_len`, `hdr_y`,
-  `yoke_d`, `arm_r` and `st_slot_w`. All 8 parts rebuilt healthy and moved by the expected
-  amounts; after reverting, every volume is back to the last 0.01 mm³.
+  `yoke_d`, `arm_h`, `pin_r`, `rod_x`, `seat_t` and `st_slot_w`. All 9 parts rebuilt healthy and
+  moved by the expected amounts; after reverting, every volume is back to the last 0.01 mm³.
 - **Same geometry as CadQuery:** `check_native.py` compares the STEP of every native part with
-  the CadQuery export. Yokes, pad, stripper, board and switch are identical. The frame differs
-  by 1.4 mm³ in 65 340 mm³ and the envelope by 55 mm³, because CadQuery draws the pipette arcs
+  the CadQuery export. Seat, yokes, pad, stripper, switch and rod are identical. The frame differs
+  by 3.5 mm³ in 67 860 mm³ and the envelope by 55 mm³, because CadQuery draws the pipette arcs
   as 24-segment polylines.
 - Python stays the generator and the checker (the 40 checks run on the same values). Values
   you change in Inventor can be carried back with `cadlib.native_part.read_user_parameters`.
@@ -329,7 +419,9 @@ files are new and do not replace it.
 - **Nozzle 5 mm below the P20's** (`nozzle_offset`) to keep 11.7 mm between the motor and the
   estimated top datum; pipette-offset calibration absorbs it.
 
-## Checks (`pipette_tool.py`: 43 ok, 2 info; `build_inventor.py`: flex test, constraints, interference; `check_native.py`; PCB DRC)
+## Checks (`pipette_tool.py`: 50 ok; `build_inventor.py`: flex test, constraints, interference; `check_native.py`; PCB DRC)
+
+V0.6 adds the eject checks listed in the V0.6 section. The list below is from V0.5.
 
 - Motor rear 11.7 mm below the estimated top datum; cone end 5.0 mm below the P20 nozzle.
 - Pipetting stroke fits (blow-out 8.5 of 11.2 mm); ejection needs a stroke ≥ 18 mm (info).
@@ -368,7 +460,17 @@ files are new and do not replace it.
 
 ## Open points (MEASURE before printing)
 
-V0.5 first:
+V0.6 first:
+- **E. Pipette forces and travel:**
+  - plunger force at the blow-out stop (the spring preload must exceed it);
+  - force to push a seated 10 µl tip off with the ejector;
+  - ejector button travel (7 mm assumed) and its top below the body top (2.5 assumed);
+  - the body bottom face around the blue collar, where the seat carries the pipette.
+- **F. YPF 20K-2AB-19.05:** drawing, body length (+6.35 mm assumed), shaft position when retracted.
+- **G. Robot, rear of the left mount:** confirm that nothing sits in the 7 mm behind the mount bar
+  where a GEN2 reaches (rod column, rod boss and ejector button use it).
+
+V0.5:
 - **A. On the robot, left mount:**
   - centre of the ribbon plug from the top screws (22.5 up, 9.3 toward the front assumed);
   - how far the plug and its holder stand out of the mount face;
@@ -401,8 +503,9 @@ Earlier open points:
 
 - After the measurements: set the parameters, rebuild, print frame (PETG/ASA, upright, 205 mm)
   and yoke, test on the robot with the rigid yoke and the stripper.
-- With a ≥ 19 mm stroke actuator: print the eject variant, choose the spring (preload above the
-  blow-out force, ≥ 8 mm travel), set `EJECT_BY_PLUNGER = True` in `ot2/onilab_tool.py`.
+- With the 19.05 mm actuator: print the eject variant, choose the springs (preload above the
+  blow-out force, ≥ 9 mm travel), press in the rod, set `EJECT_BY_PLUNGER = True` in
+  `ot2/onilab_tool.py`.
 - Measured values go into `P` (then `pipette_tool.py` and `build_inventor.py`), or straight into
   the parameter part in Inventor for a quick look. CAD-new names/numbers if the tool moves into
   CAD-new.

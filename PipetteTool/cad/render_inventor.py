@@ -12,7 +12,7 @@ from cadlib.inventor_helpers import close_if_open, safe, session  # noqa: E402
 
 INV = HERE.parent / "INVENTOR"
 DOCS = HERE.parent / "docs"
-NAME = "OT2-Pipette V0.5"
+NAME = "OT2-Pipette V0.6"
 HIDE = ("pipette envelope", "OT-2 mount bar", "gripper adapter", "ONiLAB-Dev-Core")
 
 
@@ -55,7 +55,8 @@ def main():
                         occ.Visible = False
                 # three-quarter view from +x, +z, a little above; the pipette envelope stays (clear)
                 png = DOCS / f"pipette_tool_inventor{'_eject' if nm else ''}.png"
-                render(app, doc, png, eye=(260, 160, 230), target=(6, 40, 0), up=(0, 1, 0), extent=(150, 250))
+                eye = (230, 160, -260) if nm else (260, 160, 230)   # eject variant: from the rear (arm, guide rod)
+                render(app, doc, png, eye=eye, target=(6, 40, -3), up=(0, 1, 0), extent=(150, 250))
                 print("  ->", png.name)
                 if not nm:   # the mount face: what the robot's mount bar sees (plug pocket, window, relief)
                     png = DOCS / "pipette_tool_inventor_mountface.png"

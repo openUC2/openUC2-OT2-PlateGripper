@@ -1,0 +1,929 @@
+{
+ "parameters": "OT2-Pipette V0.6 - parameters.ipt",
+ "parts": {
+  "frame": {
+   "bodies": 1,
+   "features": 31,
+   "user_parameters": 0,
+   "volume_mm3": 67863.3,
+   "faces": 140,
+   "range_mm": [
+    -9.5,
+    -66.0,
+    -25.5,
+    22.84,
+    160.35,
+    18.75
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "seat": {
+   "bodies": 1,
+   "features": 4,
+   "user_parameters": 0,
+   "volume_mm3": 3997.54,
+   "faces": 12,
+   "range_mm": [
+    -9.5,
+    -71.0,
+    -23.0,
+    20.5,
+    -66.0,
+    16.5
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "yoke": {
+   "bodies": 1,
+   "features": 4,
+   "user_parameters": 0,
+   "volume_mm3": 5137.54,
+   "faces": 11,
+   "range_mm": [
+    -0.8,
+    74.0,
+    -15.0,
+    17.2,
+    106.0,
+    5.54
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "yoke eject": {
+   "bodies": 1,
+   "features": 11,
+   "user_parameters": 0,
+   "volume_mm3": 5836.31,
+   "faces": 30,
+   "range_mm": [
+    -0.8,
+    64.5,
+    -25.4,
+    21.9,
+    106.0,
+    5.54
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "spring pad": {
+   "bodies": 1,
+   "features": 2,
+   "user_parameters": 0,
+   "volume_mm3": 729.58,
+   "faces": 8,
+   "range_mm": [
+    -0.8,
+    74.0,
+    -7.96,
+    17.2,
+    79.0,
+    1.04
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "tip stripper": {
+   "bodies": 1,
+   "features": 7,
+   "user_parameters": 0,
+   "volume_mm3": 113439.25,
+   "faces": 27,
+   "range_mm": [
+    0.0,
+    0.0,
+    0.0,
+    127.76,
+    60.0,
+    85.48
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "envelope": {
+   "bodies": 1,
+   "features": 6,
+   "user_parameters": 0,
+   "volume_mm3": 84144.07,
+   "faces": 27,
+   "range_mm": [
+    -3.8,
+    -167.5,
+    -24.96,
+    20.2,
+    73.5,
+    8.87
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "switch": {
+   "bodies": 1,
+   "features": 2,
+   "user_parameters": 0,
+   "volume_mm3": 527.92,
+   "faces": 11,
+   "range_mm": [
+    -2.2,
+    106.2,
+    -16.0,
+    3.6,
+    114.2,
+    -3.2
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  },
+  "rod": {
+   "bodies": 1,
+   "features": 1,
+   "user_parameters": 0,
+   "volume_mm3": 942.48,
+   "faces": 3,
+   "range_mm": [
+    16.5,
+    48.0,
+    -24.0,
+    20.5,
+    123.0,
+    -20.0
+   ],
+   "health": [],
+   "warnings": [],
+   "not_parametric": []
+  }
+ },
+ "flex": {
+  "changed": {
+   "datum_y": "172 -> 175 mm",
+   "body_len": "121 -> 123 mm",
+   "body_r": "12.33 -> 12.53 mm",
+   "nose_r": "13.25 -> 13.55 mm",
+   "knob_hole_d": "18.2 -> 18.8 mm",
+   "wall": "3 -> 3.5 mm",
+   "clr": "0.3 -> 0.4 mm",
+   "mot_len": "37.35 -> 39.35 mm",
+   "hdr_y": "68.5 -> 71.5 mm",
+   "eject_win_d": "12 -> 12.5 mm",
+   "yoke_d": "18 -> 19 mm",
+   "arm_h": "14 -> 15 mm",
+   "pin_r": "5.5 -> 5.8 mm",
+   "rod_x": "18.5 -> 18.7 mm",
+   "seat_t": "5 -> 5.5 mm",
+   "sw_z0": "-16 -> -16.5 mm",
+   "ins_z": "13.25 -> 13.5 mm",
+   "st_slot_w": "4.4 -> 4.7 mm"
+  },
+  "parts": {
+   "frame": {
+    "linked datum_y": 175.0,
+    "volume": 71148.07,
+    "base volume": 67863.3,
+    "lowest y": "-66.0 -> -63.0",
+    "health": [],
+    "volume after revert": 67863.3,
+    "health after revert": []
+   },
+   "seat": {
+    "linked datum_y": 175.0,
+    "volume": 4397.3,
+    "base volume": 3997.54,
+    "lowest y": "-71.0 -> -68.5",
+    "health": [],
+    "volume after revert": 3997.54,
+    "health after revert": []
+   },
+   "yoke": {
+    "linked datum_y": 175.0,
+    "volume": 5338.13,
+    "base volume": 5137.54,
+    "lowest y": "74.0 -> 79.0",
+    "health": [],
+    "volume after revert": 5137.54,
+    "health after revert": []
+   },
+   "yoke eject": {
+    "linked datum_y": 175.0,
+    "volume": 6227.82,
+    "base volume": 5836.31,
+    "lowest y": "64.5 -> 69.5",
+    "health": [],
+    "volume after revert": 5836.31,
+    "health after revert": []
+   },
+   "spring pad": {
+    "linked datum_y": 175.0,
+    "volume": 729.58,
+    "base volume": 729.58,
+    "lowest y": "74.0 -> 79.0",
+    "health": [],
+    "volume after revert": 729.58,
+    "health after revert": []
+   },
+   "tip stripper": {
+    "linked datum_y": 175.0,
+    "volume": 113375.06,
+    "base volume": 113439.25,
+    "lowest y": "0.0 -> 0.0",
+    "health": [],
+    "volume after revert": 113439.25,
+    "health after revert": []
+   },
+   "envelope": {
+    "linked datum_y": 175.0,
+    "volume": 86189.68,
+    "base volume": 84144.07,
+    "lowest y": "-167.5 -> -164.5",
+    "health": [],
+    "volume after revert": 84144.07,
+    "health after revert": []
+   },
+   "switch": {
+    "linked datum_y": 175.0,
+    "volume": 527.92,
+    "base volume": 527.92,
+    "lowest y": "106.2 -> 111.2",
+    "health": [],
+    "volume after revert": 527.92,
+    "health after revert": []
+   },
+   "rod": {
+    "linked datum_y": 175.0,
+    "volume": 942.48,
+    "base volume": 942.48,
+    "lowest y": "48.0 -> 53.0",
+    "health": [],
+    "volume after revert": 942.48,
+    "health after revert": []
+   }
+  }
+ },
+ "main": {
+  "assembly": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.6.iam",
+  "constraints": 33,
+  "constraint problems": [],
+  "sweep": [
+   {
+    "travel": "-sw_trigger",
+    "value": -0.6,
+    "yoke moved": -0.6,
+    "tab lifts the switch lever (mm3)": 9.628
+   },
+   {
+    "travel": "u_blowout",
+    "value": 8.5,
+    "yoke moved": 8.5
+   },
+   {
+    "travel": "u_max",
+    "value": 11.2,
+    "yoke moved": 11.2
+   }
+  ],
+  "interference": [
+   {
+    "pair": "frame / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / actuator",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / home switch",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / tool board",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / pipette seat",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "pipette seat / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "tool board / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "tool board / actuator",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "tool board / home switch",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / tool board",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / insert 1",
+    "at": "travel 0",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      10.95,
+      -5.51,
+      48.3,
+      15.55
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 2",
+    "at": "travel 0",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      -15.55,
+      -5.51,
+      48.3,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 3",
+    "at": "travel 0",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      -45.3,
+      -15.55,
+      -5.51,
+      -40.7,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / OT-2 mount bar (reference model)",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / actuator",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / frame",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / home switch",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "actuator / OT-2 mount bar (reference model)",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "pipette envelope / OT-2 mount bar (reference model)",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / frame",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / home switch",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / actuator",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / tool board",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / frame",
+    "at": "travel u_max",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / home switch",
+    "at": "travel u_max",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / actuator",
+    "at": "travel u_max",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke / tool board",
+    "at": "travel u_max",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   }
+  ],
+  "missing_refs": []
+ },
+ " - eject variant": {
+  "assembly": "C:\\Users\\benir\\Documents\\openUC2-OT2-PlateGripper\\PipetteTool\\INVENTOR\\OT2-Pipette V0.6 - eject variant.iam",
+  "constraints": 39,
+  "constraint problems": [],
+  "sweep": [
+   {
+    "travel": "-sw_trigger",
+    "value": -0.6,
+    "yoke moved": -0.6,
+    "tab lifts the switch lever (mm3)": 9.17
+   },
+   {
+    "travel": "u_blowout",
+    "value": 8.5,
+    "yoke moved": 8.5
+   },
+   {
+    "travel": "u_drop",
+    "value": 16.5,
+    "yoke moved": 16.5
+   },
+   {
+    "travel": "u_max_ej",
+    "value": 17.55,
+    "yoke moved": 17.55
+   }
+  ],
+  "interference": [
+   {
+    "pair": "frame / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / actuator",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / home switch",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / tool board",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / pipette seat",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "pipette seat / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / guide rod",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / guide rod",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / tool board",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / frame",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "tool board / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "tool board / actuator",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "tool board / home switch",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / tool board",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "frame / insert 1",
+    "at": "travel 0",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      10.95,
+      -5.51,
+      48.3,
+      15.55
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 2",
+    "at": "travel 0",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      43.7,
+      -15.55,
+      -5.51,
+      48.3,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / insert 3",
+    "at": "travel 0",
+    "mm3": 12.607,
+    "boxes": [
+     [
+      -9.2,
+      -45.3,
+      -15.55,
+      -5.51,
+      -40.7,
+      -10.95
+     ]
+    ],
+    "note": "heat-set insert knurl in its 4.1 mm hole (by design)"
+   },
+   {
+    "pair": "frame / OT-2 mount bar (reference model)",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / actuator",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / frame",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / home switch",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / yoke eject",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / pipette envelope",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "actuator / OT-2 mount bar (reference model)",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "pipette envelope / OT-2 mount bar (reference model)",
+    "at": "travel 0",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / frame",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / home switch",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / actuator",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / tool board",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / guide rod",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / frame",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / yoke eject",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / tool board",
+    "at": "travel u_blowout",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / frame",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / home switch",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / actuator",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / tool board",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / guide rod",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / frame",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / yoke eject",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / tool board",
+    "at": "travel u_drop",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / frame",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / home switch",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / actuator",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / tool board",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "yoke eject / guide rod",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / frame",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / yoke eject",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   },
+   {
+    "pair": "spring pad / tool board",
+    "at": "travel u_max_ej",
+    "mm3": 0.0,
+    "boxes": [],
+    "note": ""
+   }
+  ],
+  "missing_refs": []
+ }
+}
